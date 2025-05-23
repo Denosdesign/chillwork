@@ -9,13 +9,9 @@ A clean and elegant full-screen work environment that keeps you focused while st
 
 This project was originally developed to enhance my personal work productivity, with AI assistance to gradually improve and optimize it, every feature is designed based on actual needs.
 
-I often need a clean, distraction-free work environment, but also want to keep track of time and weather information at a glance. Similar tools on the market are either too complex or lack the features I need, so I decided to build my own.
-
 ---
 
 這個專案是我為了提升個人工作效率而開發的，使用了 AI 輔助開發，每一個功能都是根據實際需求設計。
-
-我經常需要一個乾淨、不被打擾的工作環境，但又希望能隨時看到時間和天氣資訊。市面上的類似工具要不就太複雜，要不就缺少我需要的功能，所以決定自己做一個。
 
 ## ✨ Key Features | 主要功能
 
