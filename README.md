@@ -11,7 +11,7 @@ This project was originally developed to enhance my personal work productivity, 
 
 ---
 
-這個專案是我為了提升個人工作效率而開發的，使用了 AI 輔助開發，每一個功能都是根據實際需求設計。
+這個專案是我為了提升個人工作效率而開發的，使用了 AI 開發，每一個功能都是根據實際需求設計。
 
 ## ✨ Key Features | 主要功能
 
