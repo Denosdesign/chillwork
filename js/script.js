@@ -1,5 +1,5 @@
 const App = (() => {
-    const DEFAULT_YOUTUBE_ID = "UV0mhY2Dxr0";
+    const DEFAULT_IMAGE_URL = "https://images.pexels.com/photos/57416/cat-sweet-kitty-animals-57416.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2";
     const MAX_HISTORY_SIZE = 10; // Max number of URLs to store per type
     const HKO_STATIONS = {
         "HKO": { nameTC: "香港天文台", nameEN: "Hong Kong Observatory" },
@@ -56,7 +56,7 @@ const App = (() => {
     };
 
     const languageData = {
-        page_title: { 'zh-TW': '專注工作計時器', 'en': 'Focus Timer' },
+        page_title: { 'zh-TW': 'Chill Work', 'en': 'Chill Work' },
         // Widgets
         widget_meme_title: { 'zh-TW': '🐱 Meow?', 'en': '🐱 Meow?' },
         widget_todo_title: { 'zh-TW': '✅ 待辦事項', 'en': '✅ To-Do List' },
@@ -272,12 +272,10 @@ const App = (() => {
                      state.currentLanguage = Language.DEFAULT_LANG;
                 }
             }
-            console.log(`[Language] Current language set to: ${state.currentLanguage}`);
         },
 
         savePreference: () => {
             localStorage.setItem('focusTimerLanguage', state.currentLanguage);
-            console.log(`[Language] Saved language preference: ${state.currentLanguage}`);
         },
 
         getText: (key) => {
@@ -308,14 +306,12 @@ const App = (() => {
         },
 
         translateUI: () => {
-            console.log(`[Language] Translating UI to ${state.currentLanguage}`);
             document.querySelectorAll('[data-lang-key]').forEach(Language.translateElement);
 
              if (DOMElements.languageSelect) {
                   DOMElements.languageSelect.value = state.currentLanguage;
                   // If Choices.js is active on languageSelect, update it too (might need try/catch)
                   if (state.languageChoiceInstance) { // Assuming we store instance
-                       console.log("[Language] Re-initializing language Choices instance.");
                        try {
                            // state.languageChoiceInstance.destroy(); 
                            // state.languageChoiceInstance = new Choices(...) // Re-create needed
@@ -334,7 +330,6 @@ const App = (() => {
             }
             ContextMenu.createMenu(true); // Force recreation of context menu
              
-            console.log("[Language] UI translation complete.");
         },
 
         handleLanguageChange: (event) => {
@@ -992,7 +987,7 @@ const App = (() => {
 
              let loadedType = null;
              let loadedValue = null;
-             state.initialYouTubeStartTime = 0; // Reset start time initially
+             state.initialYouTubeStartTime = 0;
 
              if (savedMedia) {
                  try {
@@ -1003,9 +998,6 @@ const App = (() => {
                         if (state.youtubeResumeEnabled) {
                              const savedTime = parseFloat(localStorage.getItem('youtubePlaybackTime') || '0');
                              state.initialYouTubeStartTime = savedTime;
-                             console.log(`[Background.loadPreference] YouTube resume enabled. Loaded StartTime: ${savedTime}`);
-                        } else {
-                             console.log(`[Background.loadPreference] YouTube resume disabled. StartTime set to 0.`);
                         }
                         state.pendingYouTubeVideoId = mediaData.id;
                         
@@ -1016,25 +1008,25 @@ const App = (() => {
                      } else if (mediaData.type === 'none') {
                          Background.clear(); 
                      } else {
-                         loadedType = 'youtube'; 
-                         loadedValue = DEFAULT_YOUTUBE_ID;
+                         loadedType = 'image'; 
+                         loadedValue = DEFAULT_IMAGE_URL;
                      }
                  } catch (e) {
                      console.error('Error loading saved media preference:', e);
                      localStorage.removeItem('mediaPreference');
-                     loadedType = 'youtube'; 
-                     loadedValue = DEFAULT_YOUTUBE_ID;
+                     loadedType = 'image'; 
+                     loadedValue = DEFAULT_IMAGE_URL;
                  }
              } else {
-                 loadedType = 'youtube'; 
-                 loadedValue = DEFAULT_YOUTUBE_ID;
+                 loadedType = 'image'; 
+                 loadedValue = DEFAULT_IMAGE_URL;
              }
 
              if (loadedType === 'youtube' && !state.youtubePlayer && loadedValue) {
-                  console.log(`[Background.loadPreference] Setting pending YouTube ID: ${loadedValue}, StartTime: ${state.initialYouTubeStartTime}`);
                   state.pendingYouTubeVideoId = loadedValue;
-                  // initialYouTubeStartTime is already set based on resume setting
                   state.mediaType = 'youtube'; 
+             } else if (loadedType === 'image' && loadedValue) {
+                 Background.setImage(loadedValue);
              }
          },
          
@@ -1598,7 +1590,6 @@ const App = (() => {
              const handle = widgetElement?.querySelector('.resize-handle');
              if (handle) {
                  handle.addEventListener('mousedown', (event) => Resizable.startResize(event, widgetElement, 'widget'));
-                 console.log(`[Resizable] Resize listener attached to widget: ${widgetElement.id}`);
              } else {
                   console.warn(`[Resizable] Could not find resize handle for widget: ${widgetElement.id}`);
              }
@@ -1652,7 +1643,6 @@ const App = (() => {
                     const isEnabled = e.target.checked;
                     state.weatherEnabled = isEnabled;
                     localStorage.setItem('weatherEnabled', state.weatherEnabled);
-                    console.log(`[Modal] Weather Enabled set to: ${state.weatherEnabled}`);
 
                     DOMElements.warningEnabledCheckbox.disabled = !isEnabled;
                     if (!isEnabled) {
@@ -1660,14 +1650,12 @@ const App = (() => {
                         DOMElements.warningEnabledCheckbox.checked = false;
                         state.weatherWarningEnabled = false;
                         localStorage.setItem('weatherWarningEnabled', state.weatherWarningEnabled);
-                         console.log(`[Modal] Weather Warnings automatically disabled and unchecked.`);
                          // Weather.stop() will handle hiding the container
                     } else {
                         // If weather is enabled, automatically enable AND check warnings
                         DOMElements.warningEnabledCheckbox.checked = true; 
                         state.weatherWarningEnabled = true;
                         localStorage.setItem('weatherWarningEnabled', state.weatherWarningEnabled);
-                        console.log(`[Modal] Weather Warnings automatically enabled and checked.`);
                         // Weather.start() below will trigger an initial fetch which respects the new warning state
                     }
 
@@ -1688,7 +1676,6 @@ const App = (() => {
                     // The enabled/disabled state is handled by the weatherEnabledCheckbox listener
                     state.weatherWarningEnabled = e.target.checked;
                     localStorage.setItem('weatherWarningEnabled', state.weatherWarningEnabled);
-                    console.log(`[Modal] Warning Enabled set to: ${state.weatherWarningEnabled}`);
                     
                     // Re-fetch immediately to show/hide warning if present, but only if weather is enabled
                      if (state.weatherEnabled) { 
@@ -1704,11 +1691,9 @@ const App = (() => {
                 DOMElements.youtubeResumeCheckbox.addEventListener('change', (e) => {
                     state.youtubeResumeEnabled = e.target.checked;
                     localStorage.setItem('youtubeResumeEnabled', state.youtubeResumeEnabled);
-                    console.log(`[Modal] YouTube Resume Enabled set to: ${state.youtubeResumeEnabled}`);
                     // If disabled, clear any previously saved time
                     if (!state.youtubeResumeEnabled) {
                         localStorage.removeItem('youtubePlaybackTime');
-                        console.log("[Modal] Cleared saved YouTube time as resume is now disabled.");
                     }
                 });
             } else {
@@ -2212,7 +2197,6 @@ const App = (() => {
             }
 
             document.body.appendChild(ContextMenu.menuElement);
-            console.log(`[ContextMenu] Menu ${forceRecreate ? 'recreated' : 'created'}.`);
         },
 
         showMenu: (event) => {
@@ -2273,7 +2257,6 @@ const App = (() => {
             menu.style.left = `${finalX}px`;
             menu.style.top = `${finalY}px`;
 
-             console.log(`[ContextMenu] Showing menu at (${finalX}, ${finalY})`);
              setTimeout(() => {
                  document.addEventListener('click', ContextMenu.handleClickOutside, { once: true });
                  document.addEventListener('scroll', ContextMenu.hideMenu, { once: true, capture: true }); 
@@ -2299,12 +2282,10 @@ const App = (() => {
         handleItemClick: (event) => {
             const clickedItem = event.currentTarget;
             if (clickedItem.classList.contains('disabled')) {
-                console.log("[ContextMenu] Clicked disabled item. Action prevented.");
                 return; // Do nothing if disabled
             }
 
             const action = clickedItem.dataset.action;
-            console.log(`[ContextMenu] Item clicked: ${action}`);
             ContextMenu.hideMenu(); // Hide menu after action
 
             switch (action) {
@@ -2340,7 +2321,6 @@ const App = (() => {
         setup: () => {
             ContextMenu.createMenu(); // Create menu structure on load
             document.addEventListener('contextmenu', ContextMenu.showMenu);
-            console.log("[ContextMenu] Setup complete, listener attached.");
         }
     };
 
@@ -2358,7 +2338,6 @@ const App = (() => {
                 if (savedHistory) {
                     try {
                         state[type + 'History'] = JSON.parse(savedHistory);
-                        console.log(`[UrlHistory] Loaded ${type} history:`, state[type + 'History']);
                     } catch (e) {
                         console.error(`[UrlHistory] Error parsing saved ${type} history:`, e);
                         state[type + 'History'] = [];
@@ -2392,7 +2371,6 @@ const App = (() => {
             state[historyKey] = historyArray;
             try {
                 localStorage.setItem(UrlHistory.HISTORY_KEYS[type], JSON.stringify(historyArray));
-                console.log(`[UrlHistory] Added to ${type} history: ${url}. New history:`, historyArray);
             } catch (e) {
                 console.error(`[UrlHistory] Error saving ${type} history:`, e);
             }
@@ -2437,7 +2415,6 @@ const App = (() => {
                     const inputElement = document.getElementById(inputId);
                     if (inputElement && selectedUrl) {
                         inputElement.value = selectedUrl;
-                        console.log(`[UrlHistory] Populated ${inputId} with: ${selectedUrl}`);
                         inputElement.focus(); // Keep focus or refocus
                         UrlHistory.hideActiveList(); // Hide list after selection
                     } else {
@@ -2457,7 +2434,6 @@ const App = (() => {
             if (state.activeHistoryList) {
                  state.activeHistoryList.classList.add('hidden');
                  state.activeHistoryList = null;
-                 console.log("[UrlHistory] Active list hidden.");
             }
         },
         
@@ -2472,7 +2448,6 @@ const App = (() => {
              
              containerElement.classList.remove('hidden');
              state.activeHistoryList = containerElement;
-             console.log(`[UrlHistory] Showing list for ${type}`);
         },
 
         // Removed handleClickOutside
@@ -2499,7 +2474,6 @@ const App = (() => {
         },
         
         handleFocus: (event, type) => {
-            console.log(`[UrlHistory] Focus on ${type}`);
              if (state.historyHideTimeout) { // Clear any pending hide timeout
                  clearTimeout(state.historyHideTimeout);
                  state.historyHideTimeout = null;
@@ -2515,9 +2489,7 @@ const App = (() => {
         },
         
         handleBlur: (event, type) => {
-             console.log(`[UrlHistory] Blur on ${type}`);
              state.historyHideTimeout = setTimeout(() => {
-                 console.log("[UrlHistory] Blur timeout triggered, hiding list.");
                  UrlHistory.hideActiveList();
                  state.historyHideTimeout = null;
              }, 150); // 150ms delay
@@ -2537,13 +2509,11 @@ const App = (() => {
                 state.currentFontSet = FontManager.DEFAULT_FONT_SET;
                 if (savedFontSet) localStorage.removeItem('fontPreference'); // Clear invalid preference
             }
-            console.log(`[FontManager] Current font set to: ${state.currentFontSet}`);
             FontManager.applyFontClass(); // Apply the class to body
         },
 
         savePreference: () => {
             localStorage.setItem('fontPreference', state.currentFontSet);
-            console.log(`[FontManager] Saved font preference: ${state.currentFontSet}`);
         },
 
         applyFontClass: () => {
@@ -2553,7 +2523,6 @@ const App = (() => {
             const newClass = `font-${state.currentFontSet}`;
             if (FontManager.FONT_CLASSES.includes(newClass)) {
                 body.classList.add(newClass);
-                console.log(`[FontManager] Applied body class: ${newClass}`);
             } else {
                 console.warn(`[FontManager] Attempted to apply invalid font class: ${newClass}. Applying default.`);
                 body.classList.add(`font-${FontManager.DEFAULT_FONT_SET}`);
@@ -2562,11 +2531,9 @@ const App = (() => {
         },
 
         reinitializeChoices: () => {
-            console.log("[FontManager] Reinitializing font selector Choices instance.");
             if (state.fontChoiceInstance) {
                 try {
                     state.fontChoiceInstance.destroy();
-                    console.log("[FontManager] Destroyed existing font Choices instance.");
                 } catch (e) {
                     console.error("[FontManager] Error destroying font Choices instance:", e);
                 }
@@ -2592,7 +2559,6 @@ const App = (() => {
                     removeItemButton: false,
                     addItemFilter: () => false
                 });
-                console.log("[FontManager] Reinitialized Choices.js for font select.");
             } catch (error) {
                 console.error("[FontManager] Failed to reinitialize Choices.js for font select:", error);
                 state.fontChoiceInstance = null;
@@ -2603,7 +2569,6 @@ const App = (() => {
             const newFontSet = event.target.value;
             if (newFontSet && newFontSet !== state.currentFontSet) {
                 if (FontManager.FONT_CLASSES.includes(`font-${newFontSet}`)) {
-                    console.log(`[FontManager] Font set changed to: ${newFontSet}`);
                     state.currentFontSet = newFontSet;
                     FontManager.savePreference();
                     FontManager.applyFontClass();
@@ -2622,7 +2587,6 @@ const App = (() => {
                      FontManager.reinitializeChoices(); 
                 }
             } else {
-                 console.log(`[FontManager] Selected font set (${newFontSet}) is already active or invalid.`);
             }
         }
     };
@@ -2640,7 +2604,6 @@ const App = (() => {
 
         startTimerInternal: (durationSeconds) => {
             if (state.isFocusTimerActive) return;
-            console.log(`[FocusTimer] Starting timer for ${durationSeconds / 60} minutes.`);
 
             state.isFocusTimerActive = true;
             state.focusTimerEndTime = Date.now() + durationSeconds * 1000;
@@ -2810,11 +2773,9 @@ const App = (() => {
                  console.warn('[FocusTimer.setup] completeModalButtons collection not found or empty!'); // ADDED LOG
             }
 
-            console.log("[FocusTimer] Setup complete (Context Menu Mode)."); // Updated log message
         },
 
         toggleTimer: () => {
-            console.log('[FocusTimer] toggleTimer function called!');
             if (state.isFocusTimerActive) {
                 // Timer is running, clicking main button should do nothing.
                 console.log('[FocusTimer.toggleTimer] Timer is already active. Click ignored. Use Cancel button to stop.');
@@ -2826,7 +2787,6 @@ const App = (() => {
                 const userInput = prompt(promptMessage, defaultMinutes);
 
                 if (userInput === null) {
-                    console.log("[FocusTimer] Prompt cancelled.");
                     return;
                 }
 
@@ -2839,7 +2799,6 @@ const App = (() => {
                     const durationSeconds = durationMinutes * 60;
                     state.focusTimerDuration = durationSeconds; // Update state (already in seconds)
                     localStorage.setItem('focusTimerDuration', durationSeconds);
-                    console.log(`[FocusTimer] User set duration to ${durationMinutes} minutes. Starting timer.`);
                     FocusTimer.startTimerInternal(durationSeconds); // Pass seconds
                 }
             }
@@ -2889,14 +2848,12 @@ const App = (() => {
                     Notify.show(Language.getText('notify_duration_too_long'), 'warning', 4000);
                     Animation.dodgeCursor(DOMElements.startTimerModalBtn);
                     // DO NOT start timer or close modal
-                    console.log(`[FocusTimer] Duration ${totalDurationSeconds}s > 3 hours. Activating dodge.`);
                 } else {
                     // Duration is acceptable - stop any dodging and proceed
                     Animation.stopDodgeCursor(DOMElements.startTimerModalBtn); // Ensure dodging stops
 
                     state.focusTimerDuration = totalDurationSeconds; 
                     localStorage.setItem('focusTimerDuration', totalDurationSeconds);
-                    console.log(`[FocusTimer] User set duration to H=${hours}, M=${minutes}, S=${seconds} (${totalDurationSeconds}s) via modal. Starting timer.`);
                     Notify.show(`${Language.getText('notify_duration_saved')}`, 'info');
                     FocusTimer.startTimerInternal(totalDurationSeconds);
                     Modal.closeDurationModal(); 
@@ -2917,11 +2874,9 @@ const App = (() => {
             const THREE_HOURS_IN_SECONDS = 3 * 3600;
 
             if (totalDurationSeconds <= THREE_HOURS_IN_SECONDS && Animation.isDodging) {
-                console.log("[FocusTimer] Duration input changed to <= 3 hours. Stopping dodge.");
                 Animation.stopDodgeCursor(DOMElements.startTimerModalBtn);
             } else if (totalDurationSeconds > THREE_HOURS_IN_SECONDS && !Animation.isDodging) {
                 // Start dodging if duration becomes > 3 hours
-                console.log("[FocusTimer] Duration input changed to > 3 hours. Starting dodge.");
                 Animation.dodgeCursor(DOMElements.startTimerModalBtn);
                 // Notify.show(Language.getText('notify_duration_too_long'), 'warning', 4000);
             }
