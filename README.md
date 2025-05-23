@@ -66,7 +66,6 @@ Weather function currently only supports Hong Kong region because:
 1. Open the `index.html` file directly | 直接開啟 `index.html` 檔案
 2. Press `Space` key to open settings menu | 按 `Space` 鍵開啟設定選單
 3. Adjust background, weather region and other settings as needed | 根據需要調整背景、天氣地區等設定
-4. Click the tool button in the bottom right to open various widgets | 點擊右下角的工具按鈕可開啟各種小工具
 
 ## 🛠️ Technical Details | 技術細節
 
