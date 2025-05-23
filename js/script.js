@@ -1,5 +1,5 @@
 const App = (() => {
-    const DEFAULT_IMAGE_URL = "image.png";
+    const DEFAULT_IMAGE_URL = "https://images.pexels.com/photos/2064110/pexels-photo-2064110.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2";
     const MAX_HISTORY_SIZE = 10; // Max number of URLs to store per type
     const HKO_STATIONS = {
         "HKO": { nameTC: "香港天文台", nameEN: "Hong Kong Observatory" },
