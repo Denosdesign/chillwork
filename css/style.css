@@ -1600,7 +1600,7 @@ button.hidden {
     color: #ffdd57; /* Warning yellow text */
     padding: 8px 20px;
     text-align: center;
-    font-size: 0.85rem;
+    font-size: 0.70rem;
     font-weight: bold;
     z-index: 4; /* Below widgets (10) and memos (6) */
     display: none; /* Initially hidden */

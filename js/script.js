@@ -1,5 +1,5 @@
 const App = (() => {
-    const DEFAULT_IMAGE_URL = "https://images.pexels.com/photos/57416/cat-sweet-kitty-animals-57416.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2";
+    const DEFAULT_IMAGE_URL = "image.png";
     const MAX_HISTORY_SIZE = 10; // Max number of URLs to store per type
     const HKO_STATIONS = {
         "HKO": { nameTC: "香港天文台", nameEN: "Hong Kong Observatory" },
@@ -162,7 +162,7 @@ const App = (() => {
         focus_duration_cancel_button: { 'zh-TW': '取消', 'en': 'Cancel' },
         minutes_unit: { 'zh-TW': '分鐘', 'en': 'minutes' }, // Added for notification
         notify_invalid_hms_input: { 'zh-TW': '輸入無效，請檢查時、分、秒格式 (總時間需大於 0)。', 'en': 'Invalid input. Check hours, minutes, seconds format (total duration must be greater than 0).' },
-        notify_duration_too_long: { 'zh-TW': '超過三小時？試試分段專注吧！', 'en': 'Over 3 hours? Try shorter focus sessions!' }, // NEW KEY
+        // notify_duration_too_long: { 'zh-TW': '超過三小時？試試分段專注吧！', 'en': 'Over 3 hours? Try shorter focus sessions!' }, // REMOVED KEY
     };
 
     const DOMElements = {
@@ -257,7 +257,7 @@ const App = (() => {
     };
 
     const Language = {
-        DEFAULT_LANG: 'zh-TW',
+        DEFAULT_LANG: 'en', // Changed from 'zh-TW'
         SUPPORTED_LANGS: ['zh-TW', 'en'],
 
         loadPreference: () => {
@@ -266,10 +266,11 @@ const App = (() => {
                 state.currentLanguage = savedLang;
             } else {
                 const browserLang = navigator.language || navigator.userLanguage;
-                if (browserLang.startsWith('en')) {
-                    state.currentLanguage = 'en';
+                // Default to 'en' if browserLang is not 'zh-TW' or related
+                if (browserLang.toLowerCase().startsWith('zh')) {
+                    state.currentLanguage = 'zh-TW';
                 } else {
-                     state.currentLanguage = Language.DEFAULT_LANG;
+                     state.currentLanguage = 'en'; // Changed default fallback
                 }
             }
         },
@@ -1986,11 +1987,11 @@ const App = (() => {
             if (initialTotalDurationSeconds > THREE_HOURS_IN_SECONDS) {
                  console.log("[Modal.openDurationModal] Initial duration > 3 hours. Starting dodge.");
                  setTimeout(() => {
-                    Animation.dodgeCursor(DOMElements.startTimerModalBtn);
+                    // Animation.dodgeCursor(DOMElements.startTimerModalBtn); // REMOVED
                     // Notify.show(Language.getText('notify_duration_too_long'), 'warning', 4000); // Optional notification on open
                  }, 50); // Short delay
             } else {
-                 Animation.stopDodgeCursor(DOMElements.startTimerModalBtn);
+                 // Animation.stopDodgeCursor(DOMElements.startTimerModalBtn); // REMOVED
             }
 
             DOMElements.focusDurationModal.style.display = 'flex';
@@ -2012,7 +2013,7 @@ const App = (() => {
         closeDurationModal: () => {
             if (!DOMElements.focusDurationModal) return;
             // Stop dodging when modal closes
-            Animation.stopDodgeCursor(DOMElements.startTimerModalBtn);
+            // Animation.stopDodgeCursor(DOMElements.startTimerModalBtn); // REMOVED
             const content = DOMElements.focusDurationModal.querySelector('.modal-content');
              if (content) {
                  content.style.transform = 'scale(0.95)';
@@ -2846,11 +2847,11 @@ const App = (() => {
                 if (totalDurationSeconds > THREE_HOURS_IN_SECONDS) {
                     // Duration is too long - activate dodge!
                     Notify.show(Language.getText('notify_duration_too_long'), 'warning', 4000);
-                    Animation.dodgeCursor(DOMElements.startTimerModalBtn);
+                    // Animation.dodgeCursor(DOMElements.startTimerModalBtn); // REMOVED
                     // DO NOT start timer or close modal
                 } else {
                     // Duration is acceptable - stop any dodging and proceed
-                    Animation.stopDodgeCursor(DOMElements.startTimerModalBtn); // Ensure dodging stops
+                    // Animation.stopDodgeCursor(DOMElements.startTimerModalBtn); // REMOVED
 
                     state.focusTimerDuration = totalDurationSeconds; 
                     localStorage.setItem('focusTimerDuration', totalDurationSeconds);
