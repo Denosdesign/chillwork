@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-lang-key-target="html" data-lang-attr="lang">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Chill Work - 簡潔優雅的全屏工作環境，提供時鐘、日期和天氣信息">
+    <meta name="keywords" content="專注, 工作, 計時器, 時鐘, 全屏, 專注力">
+    <meta name="author" content="Denos">
+    <title data-lang-key="page_title">Chill Work</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <!-- Add other fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Choices.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"/>
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* 備用Gill Sans字型配置 */
+        @font-face {
+            font-family: 'Gill Sans';
+            src: local('Gill Sans'), local('Gill Sans MT'), local('Gill Sans MT Pro');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Gill Sans';
+            src: local('Gill Sans Bold'), local('Gill Sans MT Bold'), local('Gill Sans MT Pro Bold');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        /* === Weather Warning Container (Bottom) === */
+        #weather-warning-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            color: rgb(255, 235, 82);
+            padding: 8px 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+            z-index: 998; /* Below timer button/context menu */
+            display: none; /* Initially hidden */
+        }
+
+        #weather-warning-container.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0); /* Slide in */
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Container -->
+    <div id="background-container">
+        <!-- YouTube Player will be injected here by the API -->
+        <div id="youtube-player"></div> 
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="container">
+        <div class="content-wrapper">
+            <!-- Date -->
+            <div id="date-container">
+                <p id="date"></p>
+            </div>
+            <!-- Clock -->
+            <div id="clock-container">
+                <p id="clock"></p>
+            </div>
+            <!-- Weather -->
+            <div id="weather-container">
+                <p id="weather"></p>
+            </div>
+        </div>
+
+        <!-- Memo Container -->
+        <div id="memo-container"></div>
+
+        <!-- Meme Widget -->
+        <div id="meme-widget" class="widget draggable-widget hidden" data-widget-id="meme">
+            <div class="widget-header">
+                <span data-lang-key="widget_meme_title">🤣 Meme Time</span>
+                <button class="widget-close-btn" data-lang-key="widget_close_aria" data-lang-attr="aria-label" aria-label="Close Meme Widget">&times;</button>
+            </div>
+            <div class="widget-content">
+                <img id="meme-image" src="" data-lang-key="widget_meme_loading_alt" data-lang-attr="alt" alt="Loading meme...">
+                <button id="new-meme-btn" class="modal-btn widget-btn" data-lang-key="widget_meme_new_button">New Meme</button>
+            </div>
+            <div class="resize-handle" data-resize-for="meme-widget"></div>
+        </div>
+
+        <!-- To-Do List Widget -->
+        <div id="todo-widget" class="widget draggable-widget hidden" data-widget-id="todo">
+            <div class="widget-header">
+                <span data-lang-key="widget_todo_title">✅ To-Do List</span>
+                <button class="widget-close-btn" data-lang-key="widget_close_aria" data-lang-attr="aria-label" aria-label="Close To-Do Widget">&times;</button>
+            </div>
+            <div class="widget-content">
+                <div id="todo-input-container">
+                    <input type="text" id="todo-input" data-lang-key="widget_todo_placeholder" data-lang-attr="placeholder" placeholder="Add a new task...">
+                    <button id="add-todo-btn" data-lang-key="widget_todo_add_aria" data-lang-attr="aria-label" aria-label="Add Task">+</button>
+                </div>
+                <ul id="todo-list">
+                    <!-- To-do items will be added here -->
+                </ul>
+            </div>
+            <div class="resize-handle" data-resize-for="todo-widget"></div>
+        </div>
+    </div>
+
+    <!-- Settings & Help Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h2 data-lang-key="settings_modal_title">設定與幫助</h2>
+                <button id="close-modal-btn" class="close-btn">&times;</button>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <!-- Background Section -->
+                <section class="modal-section">
+                    <h3 data-lang-key="settings_section_background">背景設定</h3>
+                    <div class="setting-group youtube-group">
+                        <label for="youtube-input" data-lang-key="settings_label_youtube">YouTube 影片:</label>
+                        <div class="input-with-history">
+                           <input type="text" id="youtube-input" data-lang-key="settings_placeholder_youtube" data-lang-attr="placeholder" placeholder="輸入 YouTube URL（會保存上限 10 條歷史記錄）" autocomplete="off">
+                           <div class="history-list-container hidden" id="youtube-history-container">
+                               <ul class="history-list" id="youtube-history-list"></ul>
+                           </div>
+                        </div>
+                        <button class="modal-btn" data-action="youtube" data-lang-key="settings_button_set">設定</button>
+                    </div>
+                     <div class="setting-group checkbox-group youtube-resume-group">
+                         <input type="checkbox" id="youtube-resume-checkbox" checked>
+                         <label for="youtube-resume-checkbox" data-lang-key="settings_label_youtube_resume">從上次關閉時繼續播放</label>
+                     </div>
+                    <div class="setting-group image-group">
+                        <label for="image-input" data-lang-key="settings_label_image">圖片背景:</label>
+                         <div class="input-with-history">
+                            <input type="text" id="image-input" data-lang-key="settings_placeholder_image" data-lang-attr="placeholder" placeholder="輸入圖片 URL（會保存上限 10 條歷史記錄）" autocomplete="off">
+                            <div class="history-list-container hidden" id="image-history-container">
+                                <ul class="history-list" id="image-history-list"></ul>
+                            </div>
+                        </div>
+                        <button class="modal-btn" data-action="image" data-lang-key="settings_button_set">設定</button>
+                    </div>
+                    <div class="setting-group video-group">
+                        <label for="video-input" data-lang-key="settings_label_video">影片背景:</label>
+                        <div class="input-with-history">
+                            <input type="text" id="video-input" data-lang-key="settings_placeholder_video" data-lang-attr="placeholder" placeholder="輸入影片 URL（會保存上限 10 條歷史記錄）" autocomplete="off">
+                            <div class="history-list-container hidden" id="video-history-container">
+                                <ul class="history-list" id="video-history-list"></ul>
+                            </div>
+                        </div>
+                        <button class="modal-btn" data-action="video" data-lang-key="settings_button_set">設定</button>
+                    </div>
+                    <div class="setting-group single-button">
+                         <button class="modal-btn wide-btn" data-action="clear" data-lang-key="settings_button_clear">清除背景 (或拖放檔案)</button>
+                    </div>
+                </section>
+
+                <!-- Weather Section -->
+                <section class="modal-section">
+                    <h3 data-lang-key="settings_section_weather">天氣設定 (暫時只支援香港天文台)</h3>
+                    <div class="setting-group">
+                        <label for="location-select" data-lang-key="settings_label_location">地區:</label>
+                        <select id="location-select" class="modal-select">
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="setting-group horizontal-checkbox-container">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="weather-enabled-checkbox" checked>
+                            <label for="weather-enabled-checkbox" data-lang-key="settings_label_weather_enable">顯示天氣資訊</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="warning-enabled-checkbox" checked>
+                            <label for="warning-enabled-checkbox" data-lang-key="settings_label_warning_enable">顯示天氣警告 (若有)</label>
+                        </div>
+                    </div>
+                     <div class="setting-group single-button">
+                        <button class="modal-btn wide-btn" data-action="update-weather" data-lang-key="settings_button_update_weather">手動更新天氣</button>
+                    </div>
+                </section>
+
+                <!-- Font Settings Section -->
+                <section class="modal-section">
+                    <h3 data-lang-key="settings_section_font">字體設定</h3>
+                    <div class="setting-group">
+                        <label for="font-select" data-lang-key="settings_label_font">應用程式字體:</label>
+                        <select id="font-select" class="modal-select">
+                            <option value="default">預設 (Montserrat / Noto Sans TC)</option>
+                            <option value="opensans">Open Sans / Noto Sans TC</option>
+                            <option value="serif">襯線 (Merriweather / Noto Serif TC)</option>
+                            <option value="system">系統預設</option>
+                        </select>
+                        <!-- Empty cell for grid alignment -->
+                        <div></div>
+                    </div>
+                </section>
+
+                <!-- Other Section -->
+                <section class="modal-section">
+                    <h3 data-lang-key="settings_section_other">其他功能</h3>
+                     <div class="setting-group">
+                        <label for="language-select" data-lang-key="settings_label_language">語言:</label>
+                        <select id="language-select" class="modal-select">
+                            <option value="zh-TW">繁體中文</option>
+                            <option value="en">English</option>
+                        </select>
+                        <!-- Empty cell for grid alignment -->
+                        <div></div> 
+                    </div>
+                    <div class="setting-group button-row">
+                        <button class="modal-btn" data-action="fullscreen" data-lang-key="settings_button_fullscreen">切換全屏</button>
+                        <button class="modal-btn" data-action="toggle-todo" data-lang-key="settings_button_todo">待辦事項</button>
+                        <button class="modal-btn" data-action="add-memo" data-lang-key="settings_button_add_memo">新增 Memo</button> 
+                    </div>
+                </section>
+
+                <!-- Shortcuts Section -->
+                <section class="modal-section">
+                    <h3 data-lang-key="settings_section_shortcuts">鍵盤快捷鍵</h3>
+                    <ul class="shortcut-list">
+                        <li><kbd>H</kbd> <span data-lang-key="shortcut_toggle_modal">顯示/隱藏此視窗</span></li>
+                        <li><kbd>F</kbd> <span data-lang-key="shortcut_toggle_fullscreen">切換全螢幕</span></li>
+                        <li><kbd>W</kbd> <span data-lang-key="shortcut_update_weather">更新天氣資訊</span></li>
+                        <li><kbd>T</kbd> <span data-lang-key="shortcut_toggle_todo">顯示/隱藏待辦事項</span></li>
+                        <li><kbd>N</kbd> <span data-lang-key="shortcut_add_memo">新增 Memo</span></li> 
+                        <li><kbd>Esc</kbd> <span data-lang-key="shortcut_close_modal">關閉此視窗</span></li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Focus Complete Modal -->
+    <div id="focus-complete-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 data-lang-key="focus_complete_title">專注完成！</h2>
+                <button id="close-complete-modal-btn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="text-align: center; font-size: 1.2rem; margin-bottom: 20px;" data-lang-key="focus_complete_message">做得好！休息一下吧！</p>
+                <div class="setting-group button-row">
+                    <button class="modal-btn" data-action="restart-timer" data-lang-key="focus_complete_restart">重新開始</button>
+                    <button class="modal-btn" data-action="close-modal" data-lang-key="focus_complete_close">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Focus Duration Modal -->
+    <div id="focus-duration-modal" class="modal">
+        <div class="modal-content small-modal"> <!-- Optional: Add a class for potentially smaller size -->
+            <div class="modal-header">
+                <h2 data-lang-key="focus_duration_title">設定專注時間</h2>
+                <button id="close-duration-modal-btn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p data-lang-key="focus_duration_prompt" style="margin-bottom: 15px; text-align: center;">請輸入您想要專注的時間（HH:MM:SS）：</p>
+                <div class="setting-group duration-input-group">
+                    <input type="number" id="duration-input-hours" min="0" max="99" value="0" class="duration-input"> 
+                    <span class="duration-separator">:</span>
+                    <input type="number" id="duration-input-minutes" min="0" max="59" value="25" class="duration-input">
+                    <span class="duration-separator">:</span>
+                    <input type="number" id="duration-input-seconds" min="0" max="59" value="0" class="duration-input">
+                </div>
+                <div class="setting-group button-row" style="margin-top: 20px;">
+                    <button id="start-timer-modal-btn" class="modal-btn" data-lang-key="focus_duration_start_button">開始計時</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Temporary Message Area -->
+    <div id="temp-message-container"></div>
+
+    <!-- Weather Warning Container -->
+    <div id="weather-warning-container"></div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <!-- Choices.js JS -->
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    <!-- YouTube IFrame Player API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <!-- Main Script -->
+    <script src="js/script.js"></script>
+</body>
+</html> 

@@ -1,0 +1,1621 @@
+/* === Reset & Base Styles === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Montserrat', sans-serif;
+    font-family: var(--font-family-main, 'Montserrat', 'Noto Sans TC', sans-serif);
+    font-size: 16px;
+    background-color: #f0f0f0; /* Default background if media fails */
+}
+
+body {
+    position: relative;
+    background-color: rgba(0, 0, 0, 0.2); /* Slight overlay */
+    transition: opacity 0.3s ease;
+    color: #ffffff; /* Default text color for main content */
+}
+
+/* === Background === */
+#background-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-size: cover;
+    background-position: center;
+    transition: opacity 1.5s ease;
+}
+
+#background-container video,
+#background-container iframe {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+    border: none;
+}
+
+/* === Main Content Layout === */
+.container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center; /* Horizontal centering */
+    align-items: flex-start;  /* Align items to the top */
+    position: relative;
+    z-index: 1;
+    padding: 10vh 20px 20px 20px; /* Add padding-top for spacing */
+}
+
+.content-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    /* gap: 0.5em; */ /* Remove uniform gap */
+    transition: none;
+}
+
+/* === Date, Clock, Weather Styles === */
+#date-container,
+#clock-container,
+#weather-container {
+    width: 100%;
+    user-select: none; /* Prevent text selection */
+    -webkit-user-select: none; /* Safari/Chrome */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE/Edge */
+    cursor: default; /* Indicate non-interactive text */
+}
+
+#date-container {
+     margin-bottom: 0; /* Keep clock close to date */
+}
+
+#clock-container {
+    margin-bottom: 1em; /* Increased space below clock, before weather */
+}
+
+#date {
+    font-size: 0.8rem; /* User requested smaller size */
+    font-weight: normal;
+    letter-spacing: 1px;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+}
+
+#clock {
+    font-family: 'Oswald', sans-serif;
+    font-size: 6rem;
+    font-weight: 700;
+    letter-spacing: -2px; /* Slightly less negative spacing */
+    margin: 0;
+    line-height: 1;
+    text-shadow: 0 0 12px rgba(0, 0, 0, 0.7);
+}
+
+#clock .hour,
+#clock .minute {
+    display: inline-block;
+    min-width: auto;
+    padding: 0 3px; /* Add slight horizontal padding */
+    letter-spacing: -3px; /* Adjust spacing within numbers if needed */
+}
+
+#clock .separator {
+    display: inline-block;
+    animation: blink 1s infinite;
+    margin: 0 1px; /* Adjust margin for colon */
+    position: relative;
+    top: -0.05em;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+#weather {
+    font-size: 0.8rem; /* User requested smaller size */
+    font-weight: normal;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.weather-item {
+    display: inline-flex; /* Use inline-flex */
+    align-items: center;
+    gap: 4px;
+}
+
+.weather-icon {
+    font-size: 1.3em; /* Relative size */
+}
+
+.weather-item.warning {
+    color: #ffdd57; /* Softer warning color */
+    font-weight: bold;
+}
+
+/* === Modal Styles (Glassmorphism Theme) === */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3); /* Darker backdrop */
+    backdrop-filter: blur(8px); /* Stronger blur on backdrop */
+    -webkit-backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+    /* Add transition for the modal fade-in itself */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal.visible {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-content {
+    background-color: rgba(255, 255, 255, 0.15); /* Very transparent white */
+    backdrop-filter: blur(20px); /* Strong blur on the content */
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle white border */
+    width: 90%;
+    max-width: 580px; /* Slightly wider */
+    border-radius: 15px; /* More rounded corners */
+    box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 ); /* Softer shadow */
+    color: #ffffff; /* White text for contrast */
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Add transition for content pop-in effect */
+    transform: scale(0.95);
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Animate content when modal becomes visible */
+.modal.visible .modal-content {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* Transparent border */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    background-color: rgba(255, 255, 255, 0.05); /* Slightly different header bg */
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    font-weight: lighter;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    padding: 5px;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.close-btn:hover {
+    color: #ffffff;
+}
+
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex-grow: 1;
+    /* Custom scrollbar styles for WebKit */
+    &::-webkit-scrollbar {
+        width: 8px; /* Thinner scrollbar */
+    }
+    &::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05); /* Very subtle track */
+        border-radius: 10px;
+    }
+    &::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.25); /* Semi-transparent thumb */
+        border-radius: 10px;
+        border: 2px solid transparent; /* Creates padding around thumb */
+        background-clip: content-box;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+    }
+    /* Styles for Firefox */
+    scrollbar-width: thin; 
+    scrollbar-color: rgba(255, 255, 255, 0.25) rgba(255, 255, 255, 0.05); /* thumb track */
+}
+
+.modal-section {
+    margin-bottom: 30px; /* Increased space between sections */
+}
+.modal-section:last-child {
+    margin-bottom: 0;
+}
+
+.modal-section h3 {
+    margin: 0 0 18px 0; /* Slightly more space below heading */
+    font-size: 1rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.85);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.setting-group {
+    margin-bottom: 18px; /* Increased default bottom margin */
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+}
+
+.setting-group.single-button {
+    grid-template-columns: 1fr;
+}
+
+.setting-group label {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-align: right;
+    white-space: nowrap;
+}
+
+.setting-group input[type="text"] {
+    padding: 9px 12px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    width: 100%;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* Remove default select styling as Choices.js will replace it */
+/*
+.setting-group select {
+    padding: 9px 12px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    width: 100%;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    font-family: 'Montserrat', sans-serif; 
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url(...);
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 18px;
+    padding-right: 35px;
+}
+
+.setting-group select option {
+    background-color: #ffffff; 
+    color: #000000; 
+}
+*/
+
+.setting-group input[type="text"]::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.setting-group input[type="text"]:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+/* === Choices.js Glassmorphism Styling === */
+.choices {
+    width: 100%;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.choices__inner {
+    background-color: rgba(255, 255, 255, 0.1); /* Glass background */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 7px 10px; /* Adjust padding */
+    color: #ffffff;
+    min-height: auto; /* Reset min-height */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.choices[data-type*="select-one"]::after {
+    /* Style the dropdown arrow */
+    border-color: rgba(255, 255, 255, 0.7) transparent transparent; 
+    right: 11.5px;
+    margin-top: -3px;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.choices.is-open[data-type*="select-one"]::after {
+    border-color: transparent transparent rgba(255, 255, 255, 0.7);
+    margin-top: -3px;
+}
+
+.choices__list--dropdown, .choices__list[aria-expanded] {
+    background-color: rgba(40, 40, 45, 0.8); /* Darker dropdown background */
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    margin-top: 5px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.choices__list--dropdown .choices__item, .choices__list[aria-expanded] .choices__item {
+    color: rgba(255, 255, 255, 0.85);
+    padding: 8px 10px;
+    font-size: 0.9rem;
+}
+
+.choices__list--dropdown .choices__item--selectable.is-highlighted, 
+.choices__list[aria-expanded] .choices__item--selectable.is-highlighted {
+    background-color: rgba(255, 255, 255, 0.1); /* Highlight effect */
+    color: #ffffff;
+}
+
+.choices__placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    opacity: 1;
+}
+
+/* Focus state */
+.is-focused .choices__inner {
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+/* Selected item style */
+.choices__list--single .choices__item {
+    color: #ffffff; /* Ensure selected text is white */
+}
+
+.modal-btn {
+    padding: 9px 16px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05)); /* Subtle gradient */
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-btn:hover {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.modal-btn.wide-btn {
+    width: 100%;
+    padding: 11px;
+}
+
+/* Slider Group in Modal */
+.setting-group.slider-group {
+    grid-template-columns: auto 1fr auto;
+}
+
+.setting-group input[type="range"] {
+    width: 100%;
+    cursor: pointer;
+    /* Basic styling for range input */
+    appearance: none;
+    -webkit-appearance: none;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    outline: none;
+    transition: background 0.2s ease;
+}
+
+.setting-group input[type="range"]:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Range Thumb styling */
+.setting-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.setting-group input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+#ui-scale-value {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    min-width: 45px; /* Ensure space */
+    text-align: right;
+}
+
+/* Setting Note */
+.setting-note {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: -5px; /* Adjust spacing */
+    text-align: center;
+}
+
+/* Style for the YouTube resume checkbox group */
+.youtube-resume-group {
+    grid-column: 2 / span 2;
+    margin-top: 0px; /* Adjust margin after history controls */
+    margin-bottom: 20px; /* Slightly more space before next setting group */
+    padding-left: 0;
+     justify-self: start;
+}
+
+/* Ensure the checkbox item within this group aligns correctly */
+.youtube-resume-group .checkbox-item { 
+    padding-left: 0; 
+    margin-bottom: 0;
+    width: auto; 
+}
+
+/* Remove styles targeting the old group class - REMOVED */
+/* .youtube-resume-group .checkbox-item { ... } */
+
+/* Shortcuts List */
+.shortcut-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.shortcut-list li {
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.85);
+    display: flex;
+    align-items: center;
+}
+
+.shortcut-list kbd {
+    display: inline-block;
+    padding: 3px 7px;
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85em;
+    min-width: 35px;
+    text-align: center;
+    color: #ffffff;
+    margin-right: 10px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* === Temporary Message === */
+#temp-message-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.temp-message {
+    padding: 10px 20px;
+    border-radius: 20px;
+    color: white;
+    font-size: 0.9rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.temp-message.info {
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.temp-message.warning {
+    background-color: rgba(255, 165, 0, 0.8);
+}
+
+.temp-message.error {
+    background-color: rgba(220, 53, 69, 0.85);
+}
+
+.temp-message.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* === Responsive Design === */
+@media (max-width: 768px) {
+    #clock {
+        font-size: 4.5rem;
+        letter-spacing: -3px;
+    }
+    #clock .separator {
+        margin: 0 -3px;
+    }
+    #date, #weather {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    #clock {
+        font-size: 3.5rem;
+        letter-spacing: -2px;
+    }
+    #clock .separator {
+        margin: 0 -2px;
+    }
+    #date, #weather {
+        font-size: 0.9rem;
+    }
+
+    .modal-content {
+        width: 95%;
+        max-height: 85vh;
+    }
+    .modal-header h2 {
+        font-size: 1.1rem;
+    }
+    .setting-group {
+        grid-template-columns: 1fr; /* Stack elements */
+        gap: 8px;
+    }
+    .setting-group label {
+        text-align: left;
+        margin-bottom: 2px;
+    }
+    .setting-group input[type="text"] {
+        width: 100%;
+    }
+    .modal-btn {
+        width: 100%; /* Make button full width */
+    }
+    .shortcut-list li {
+        font-size: 0.85rem;
+    }
+    .shortcut-list kbd {
+        margin-right: 8px;
+    }
+}
+
+/* === Widget Styles === */
+.widget {
+    position: absolute; /* Needed for dragging */
+    background-color: rgba(40, 40, 45, 0.75); /* Darker, slightly more opaque */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px; /* Slightly more rounded */
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.35);
+    color: #ffffff;
+    z-index: 10; /* Below modal (1000), above content (1) */
+    min-width: 220px; /* Even smaller min width */
+    max-width: 320px; /* Even smaller max width */
+    display: flex; /* Use flexbox for structure */
+    flex-direction: column;
+    top: 15%;
+    left: calc(50% - 150px);
+    opacity: 0; 
+    visibility: hidden; 
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    overflow: hidden; 
+    pointer-events: none; /* Initially ignore clicks */
+}
+
+.widget.hidden {
+    opacity: 0;
+    visibility: hidden; /* Ensure hidden state */
+    pointer-events: none; /* Ignore clicks when hidden */
+}
+
+.widget:not(.hidden) {
+    opacity: 1;
+    visibility: visible; /* Explicitly make visible */
+    pointer-events: auto; /* Allow clicks when visible */
+    /* No need to override transition here, base transition is fine */
+}
+
+.widget-header {
+    padding: 10px 15px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: grab; /* Default cursor for draggable area */
+    user-select: none;
+    -webkit-user-select: none;
+    flex-shrink: 0; /* Prevent header shrinking */
+}
+
+.widget-header:active {
+    cursor: grabbing; /* Cursor while dragging */
+}
+
+.widget-header span {
+    font-weight: bold;
+    font-size: 0.95rem;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+}
+
+.widget-close-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0 5px;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.widget-close-btn:hover {
+    color: #ffffff;
+}
+
+.widget-content {
+    padding: 15px;
+    overflow-y: auto; /* Allow content scrolling */
+    flex-grow: 1; /* Allow content to fill available space */
+    padding-bottom: 20px; /* Keep padding to avoid overlap with handle */
+}
+
+/* Meme Widget Specific */
+#meme-widget img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto 15px auto;
+    border-radius: 8px;
+    min-height: 100px; /* Maintain minimum height */
+    background-color: rgba(0, 0, 0, 0.25); /* Default background */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 0.3s ease; /* Add transition for background */
+}
+
+/* Define pulse animation for loading background */
+@keyframes pulse-bg {
+    0% { background-color: rgba(50, 50, 55, 0.4); } /* Lower starting opacity */
+    50% { background-color: rgba(50, 55, 60, 0.8); } /* Higher peak opacity & slight color change */
+    100% { background-color: rgba(50, 50, 55, 0.4); }
+}
+
+/* Style for the image while loading */
+#meme-widget img.loading {
+    background-color: rgba(50, 50, 55, 0.4); /* Match starting opacity */
+    animation: pulse-bg 1s infinite ease-in-out; /* Faster animation */
+    /* You could add a background image spinner here too */
+    /* background-image: url('loading.gif'); */
+}
+
+#meme-widget h4 {
+    font-size: 1rem;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: 500;
+    min-height: 1.2em;
+    line-height: 1.4;
+}
+
+.widget-btn {
+    /* Inherits .modal-btn styles, add specifics if needed */
+    width: 100%;
+    margin-top: 15px;
+}
+
+/* To-Do Widget Specific */
+#todo-input-container {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+#todo-input {
+    flex-grow: 1;
+    padding: 10px 12px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-family: inherit;
+}
+
+#todo-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+#add-todo-btn {
+    padding: 10px 14px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: bold;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+#add-todo-btn:hover {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+
+#todo-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#todo-list li {
+    display: flex;
+    align-items: center;
+    padding: 10px 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.95rem;
+    word-break: break-word;
+    transition: background-color 0.2s ease;
+}
+
+#todo-list li:last-child {
+    border-bottom: none;
+}
+
+#todo-list li:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+#todo-list li input[type="checkbox"] {
+    margin-right: 12px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+    position: relative;
+    top: 1px;
+    flex-shrink: 0; /* Prevent checkbox shrinking */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+#todo-list li input[type="checkbox"]:checked {
+    background-color: rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+#todo-list li input[type="checkbox"]:checked::after {
+    content: '✔';
+    color: #2c2c2e; /* Dark checkmark for contrast */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 13px;
+    font-weight: bold;
+}
+
+#todo-list li span {
+    flex-grow: 1;
+    transition: color 0.3s ease, text-decoration 0.3s ease;
+    line-height: 1.4;
+}
+
+#todo-list li.completed span {
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: line-through;
+}
+
+#todo-list li button.delete-todo {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    font-size: 16px; /* Slightly larger */
+    font-weight: bold;
+    margin-left: 10px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    transition: color 0.2s ease, background-color 0.2s ease;
+    flex-shrink: 0; /* Prevent button shrinking */
+}
+
+#todo-list li button.delete-todo:hover {
+    color: #ff8a80; /* Reddish color on hover */
+    background-color: rgba(255, 138, 128, 0.15);
+}
+
+/* === Memo Container === */
+#memo-container {
+    position: absolute; /* So child memos can be positioned relative to it (or viewport) */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Container doesn't block clicks */
+    z-index: 5; /* Below widgets */
+}
+
+/* === Memo Note Styles === */
+.memo-note {
+    position: absolute; /* Make them individually positionable */
+    background-color: rgba(255, 247, 168, 0.85); /* Sticky note yellow */
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(211, 198, 90, 0.6);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+    width: 180px; /* Smaller width */
+    min-height: 120px; /* Smaller min height */
+    display: flex;
+    flex-direction: column;
+    cursor: grab; /* Indicate draggable */
+    transition: box-shadow 0.2s ease; 
+    pointer-events: auto; /* Notes are interactive */
+    z-index: 6; /* Above memo-container, below other widgets */
+    color: #333; /* Dark text for yellow background */
+    font-family: var(--font-family-main, 'Montserrat', 'Noto Sans TC', sans-serif); /* Use CSS variable */
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.memo-note:active {
+    cursor: grabbing;
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+    z-index: 7; /* Bring to front when dragging */
+}
+
+.memo-note textarea {
+    flex-grow: 1; /* Take available space */
+    background: none;
+    border: none;
+    resize: none; /* Disable textarea resizing handle */
+    outline: none;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    padding: 5px 0 0 0;
+    width: 100%;
+    cursor: text; /* Text cursor when hovering textarea */
+    height: 100px; /* Initial height, grows */
+}
+
+.memo-note .memo-controls {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px dashed rgba(184, 173, 84, 0.4);
+}
+
+.memo-note .memo-delete-btn {
+    background: none;
+    border: none;
+    color: rgba(100, 90, 20, 0.6);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0 3px;
+    font-weight: bold;
+}
+
+.memo-note .memo-delete-btn:hover {
+    color: #b33a3a; /* Reddish on hover */
+}
+
+/* === Resize Handle === */
+.resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 15px;
+    height: 15px;
+    /* background-color: rgba(255, 255, 255, 0.3); */ /* Optional background for visibility */
+    border-bottom: 3px solid rgba(0, 0, 0, 0.4); /* Darker lines */
+    border-right: 3px solid rgba(0, 0, 0, 0.4);
+    cursor: nwse-resize; /* Diagonal resize cursor */
+    z-index: 8; /* Above memo content */
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+/* Slightly more visible on hover */
+.resize-handle:hover {
+    opacity: 1;
+}
+
+/* Adjust handle color for yellow memo notes */
+.memo-note .resize-handle {
+    border-bottom: 3px solid rgba(100, 90, 20, 0.6);
+    border-right: 3px solid rgba(100, 90, 20, 0.6);
+}
+
+/* Make sure widget content doesn't overlap the handle */
+.widget-content {
+    padding-bottom: 20px; /* Add padding to avoid overlap */
+}
+/* Make sure memo textarea doesn't overlap the handle */
+.memo-note textarea {
+    padding-bottom: 10px; /* Add slight padding */
+}
+
+/* === Custom Context Menu === */
+#context-menu {
+    position: fixed; /* Position relative to viewport */
+    background-color: rgba(55, 55, 60, 0.85); /* Dark semi-transparent */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    padding: 6px 0; /* Vertical padding */
+    z-index: 9999; /* Highest z-index */
+    min-width: 180px;
+    display: none; /* Hidden by default */
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.context-menu-item {
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between icon and text */
+    white-space: nowrap;
+}
+
+.context-menu-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Style for disabled context menu items */
+.context-menu-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: transparent; /* Ensure hover effect doesn't apply */
+}
+
+/* Optional: Prevent hover effect even more explicitly */
+.context-menu-item.disabled:hover {
+     background-color: transparent;
+}
+
+.context-menu-separator {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.15);
+    margin: 5px 0;
+}
+
+/* Style the context menu items with icons */
+.context-menu-item::before {
+    display: inline-block;
+    width: 20px; /* Ensure enough width for icons */
+    text-align: center;
+    margin-right: 8px; /* Consistent spacing */
+}
+.context-menu-item[data-action="start-timer"]::before { content: '⏱️'; }
+.context-menu-item[data-action="stop-timer"]::before { content: '⏹️'; }
+.context-menu-item[data-action="add-memo"]::before { content: '📝'; }
+.context-menu-item[data-action="toggle-todo"]::before { content: '✅'; }
+.context-menu-item[data-action="fullscreen"]::before { content: ' F'; font-family: monospace; font-weight: bold; }
+.context-menu-item[data-action="update-weather"]::before { content: '☀️'; }
+.context-menu-item[data-action="settings"]::before { content: '⚙️'; }
+
+/* Setting Group for Checkboxes - Updated for Horizontal Layout */
+.setting-group.checkbox-group, /* Keep old styles if used elsewhere */
+.checkbox-item { /* Style individual items in horizontal layout */
+    display: flex; /* Use flex for checkbox + label alignment */
+    align-items: center;
+    gap: 8px; /* Space between checkbox and its label */
+    /* Remove bottom margin if it was causing extra space vertically */
+    margin-bottom: 0; 
+}
+
+/* Container for horizontal checkboxes */
+.horizontal-checkbox-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    align-items: center;
+    gap: 25px; /* Space between the two checkbox items */
+    /* Override default grid behavior if needed - REMOVED */
+    /* grid-template-columns: none; */ 
+     /* Remove bottom margin inherited from .setting-group if needed, */
+     /* but standard margin seems fine now */
+    /* margin-bottom: 15px; */ 
+    /* Optional: Justify content if needed */
+    /* justify-content: center; */
+}
+
+.setting-group input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+    position: relative;
+    cursor: pointer;
+    /* Removed justify-self as flex is handling alignment now */
+    transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.3s ease; 
+}
+
+/* ... rest of the checkbox styles (:checked, :disabled, label styles) remain the same ... */
+
+.setting-group input[type="checkbox"]:checked {
+    background-color: rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+.setting-group input[type="checkbox"]:checked::after {
+    content: '✔';
+    color: #2c2c2e; /* Dark checkmark for contrast */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 13px;
+    font-weight: bold;
+}
+
+/* Style for disabled checkbox */
+.setting-group input[type="checkbox"]:disabled {
+    opacity: 0.4; 
+    cursor: not-allowed; 
+    border-color: rgba(255, 255, 255, 0.3); 
+}
+
+/* Style for the label associated with a disabled checkbox */
+/* Update selector to target label within checkbox-item */
+.checkbox-item input[type="checkbox"]:disabled + label {
+    opacity: 0.5; 
+    cursor: not-allowed; 
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+
+.checkbox-item label {
+    text-align: left; 
+    cursor: pointer; 
+    color: rgba(255, 255, 255, 0.85);
+    transition: opacity 0.3s ease; 
+}
+
+/* Hide weather container rule */
+#weather-container.hidden {
+    display: none;
+}
+
+/* Smaller button style */
+.small-btn {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    font-weight: normal;
+}
+
+/* Container for history button and list */
+.history-controls {
+    grid-column: 2 / span 2; 
+    justify-self: start; 
+    margin-top: -8px; /* Adjusted margin */
+    margin-bottom: 18px; /* Adjusted margin */
+    position: relative; 
+}
+
+/* History button specific alignment if needed */
+.history-btn {
+    /* Optional: Add margin if needed */
+}
+
+/* History list container */
+.history-list-container {
+    position: absolute;
+    top: 100%; /* Position directly below the input (relative to .input-with-history) */
+    left: 0;
+    right: 0; /* Make it span the width of the container */
+    z-index: 1010; 
+    background-color: rgba(45, 45, 50, 0.9); 
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: none; /* Remove top border where it touches the input */
+    border-radius: 0 0 8px 8px; /* Round bottom corners */
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3); /* Adjusted shadow */
+    max-height: 150px;
+    overflow-y: auto;
+    /* min-width removed, will take width of container */
+    opacity: 0;
+    transform: translateY(-5px); /* Start slightly up for transition */
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    pointer-events: none; 
+}
+
+.history-list-container:not(.hidden) {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* History list */
+.history-list {
+    list-style: none;
+    padding: 5px 0;
+    margin: 0;
+}
+
+.history-list li {
+    padding: 6px 12px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+}
+
+.history-list li:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+
+/* Adjustments for existing checkbox group */
+.youtube-resume-group {
+    grid-column: 2 / span 2;
+    margin-top: 0px; /* Adjust margin after history controls */
+    margin-bottom: 20px; /* Slightly more space before next setting group */
+    padding-left: 0;
+     justify-self: start;
+}
+
+/* NEW: Wrapper for input and its history list */
+.input-with-history {
+    position: relative; /* Crucial for absolute positioning of the list */
+    /* Take up the available grid space */
+    grid-column: 2 / 3; /* Assuming this is the input column */
+}
+
+/* Input field adjustments if needed */
+.input-with-history input[type="text"] {
+    width: 100%; /* Ensure input fills the container */
+}
+
+/* Adjustments for setting groups containing the new structure */
+.setting-group.youtube-group,
+.setting-group.image-group,
+.setting-group.video-group {
+    /* Ensure the grid aligns items correctly */
+    align-items: start; /* Align label to the top */
+}
+
+/* Font Definitions based on Body Class */
+body.font-default {
+    --font-family-main: 'Montserrat', 'Noto Sans TC', sans-serif;
+}
+body.font-opensans {
+    --font-family-main: 'Open Sans', 'Noto Sans TC', sans-serif;
+}
+body.font-serif {
+    --font-family-main: 'Merriweather', 'Noto Serif TC', serif;
+}
+body.font-system {
+    --font-family-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+/* ... rest of css ... */
+
+/* === Focus Timer Styles === */
+/* // REMOVED #focus-timer-btn styles
+#focus-timer-btn {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px; 
+    z-index: 999;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+#focus-timer-btn:hover {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.1));
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    transform: translateY(-2px);
+}
+
+#focus-timer-btn.active {
+    
+    background: linear-gradient(145deg, rgba(255, 100, 100, 0.3), rgba(255, 100, 100, 0.1));
+    border-color: rgba(255, 100, 100, 0.4);
+}
+*/
+
+/* Timer Display Container */
+#timer-display-container {
+    /* Position timer exactly where clock was */
+    /* Remove absolute positioning and centering */
+    /* position: absolute; 
+    top: 0; left: 0; right: 0; bottom: 0;
+    padding-top: 10vh; */
+    /* Add margin matching clock-container if needed */
+    margin-bottom: 1em; /* Match clock-container bottom margin */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#timer-display-container.hidden {
+    display: none;
+    visibility: hidden;
+    opacity: 0;
+}
+
+#timer-display {
+    /* Inherit font style from clock, adjust size */
+    font-size: 6rem; /* Match clock size */
+    /* Add cursor pointer for hover interaction */
+    cursor: pointer;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    letter-spacing: -3px;
+    margin: 0 0 20px 0; /* Space below timer */
+    line-height: 1;
+    text-shadow: 0 0 15px rgba(0, 0, 0, 0.75);
+    color: #fff;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* // REMOVED #cancel-timer-btn styles
+#cancel-timer-btn {
+    
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    margin-top: 10px; 
+}
+
+#cancel-timer-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+*/
+
+/* Focus Complete Modal Specifics */
+/* 
+#focus-complete-modal .modal-content {
+    border-color: rgba(100, 220, 150, 0.5); // Greenish border 
+    background-color: rgba(40, 60, 50, 0.3); // Slightly green tint 
+}
+*/
+
+#focus-complete-modal.shake .modal-content {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* Shake Animation */
+@keyframes shake {
+  10%, 90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+  20%, 80% {
+    transform: translate3d(2px, 0, 0);
+  }
+  30%, 50%, 70% {
+    transform: translate3d(-3px, 0, 0);
+  }
+  40%, 60% {
+    transform: translate3d(3px, 0, 0);
+  }
+}
+
+/* Restore two-button layout specifically for focus-complete-modal */
+#focus-complete-modal .setting-group.button-row {
+    grid-template-columns: 1fr 1fr; /* Two equal columns */
+    gap: 15px; /* Add some space between buttons */
+}
+
+/* Generic Timer Button class (for potential reuse) - Can likely remove now */
+/*
+.timer-button {
+    
+}
+
+.timer-button.small {
+    
+}
+*/
+
+/* Add generic hidden styles - Keep for other potential uses */
+p.hidden,
+button.hidden {
+    display: none;
+}
+
+/* Remove container-level hidden styles
+/*
+#clock-container.hidden,
+#timer-display-container.hidden {
+    display: none;
+    visibility: hidden;
+    opacity: 0;
+}
+*/
+
+#timer-display-container {
+    /* Ensure it occupies space similar to clock */
+    display: flex; /* Use flex again for internal alignment */
+    flex-direction: column;
+    align-items: center;
+    /* Remove margin-bottom, let natural flow handle spacing? */
+    /* margin-bottom: 1em; */ 
+}
+
+/* Style the cancel button within the clock container */
+#clock-container {
+    position: relative; /* Allow positioning cancel button if needed, or just rely on flex */
+    display: flex; /* Use flex for clock and button */
+    flex-direction: column; /* Stack clock above button */
+    align-items: center; /* Center items */
+}
+
+#cancel-timer-btn {
+    margin-top: 10px; /* Space between clock and button */
+    /* Existing styles for button should be okay */
+}
+
+/* Ensure hidden button takes no space */
+#cancel-timer-btn.hidden {
+    display: none;
+}
+
+/* Remove p.hidden as we only hide button now? Revisit if clock p needs hiding */
+/* 
+p.hidden,
+button.hidden {
+    display: none;
+}
+*/ 
+
+/* Style for the number input in the duration modal */
+#duration-input-modal {
+    /* Inherit general input styles */
+    padding: 9px 12px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 1rem; /* Slightly larger font size */
+    font-family: 'Montserrat', sans-serif;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    /* Specific styles */
+    width: 120px; /* Adjust width as needed */
+    text-align: center; 
+    /* Remove browser default spinner arrows (Webkit/Blink) */
+    -webkit-appearance: textfield; 
+    appearance: textfield;
+    margin: 0 auto; /* Center horizontally since it's the only item */
+}
+
+#duration-input-modal::-webkit-outer-spin-button,
+#duration-input-modal::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox specific */
+#duration-input-modal[type=number] {
+  -moz-appearance: textfield;
+}
+
+#duration-input-modal:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+/* Timer Display Container */
+
+/* Styles for the duration input group in the modal */
+.duration-input-group {
+    display: flex; /* Use flexbox for alignment */
+    justify-content: center; /* Center items horizontally */
+    align-items: center; /* Align items vertically */
+    gap: 5px; /* Space between inputs and separators */
+    grid-column: 1 / -1; /* Span all columns in the parent grid */
+}
+
+.duration-input {
+    /* Inherit general input styles */
+    padding: 8px 10px; /* Slightly adjusted padding */
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px; /* Slightly smaller radius */
+    color: #ffffff;
+    font-size: 1rem; 
+    font-family: 'Montserrat', sans-serif;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    /* Specific styles */
+    width: 55px; /* Fixed width for each input */
+    text-align: center; 
+    /* Remove browser default spinner arrows */
+    -webkit-appearance: textfield; 
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+.duration-input::-webkit-outer-spin-button,
+.duration-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.duration-input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.duration-separator {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 0 2px; /* Slight spacing around colon */
+}
+
+/* Timer Display Container */
+
+/* Style for potentially smaller modals */
+.modal-content.small-modal {
+    max-width: 400px; /* Adjust as needed */
+}
+
+/* Ensure button row with a single button spans full width */
+/* // REMOVED - Reverting button width
+.setting-group.button-row {
+    grid-template-columns: 1fr; 
+}
+*/
+
+/* Style for simplified input group */
+.setting-group.single-input-group {
+    grid-template-columns: 1fr; /* Single column */
+    justify-items: center; /* Center the input horizontally */
+}
+
+/* Center the button in the duration modal */
+#focus-duration-modal .setting-group.button-row {
+    grid-template-columns: 1fr; /* Ensure grid cell spans width */
+    justify-items: center; /* Center the item (button) within the cell */
+    gap: 0; /* Remove gap if any was inherited */
+}
+
+/* === Weather Warning Container (Bottom) === */
+#weather-warning-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    /* Removed background, backdrop-filter, border */
+    background-color: transparent; /* Explicitly transparent */
+    /* backdrop-filter: blur(10px); */ /* Removed blur effect */
+    /* -webkit-backdrop-filter: blur(10px); */ /* Removed Safari support */
+    /* border-top: 1px solid rgba(255, 255, 255, 0.15); */ /* Removed Subtle top border */
+    color: #ffdd57; /* Warning yellow text */
+    padding: 8px 20px;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: bold;
+    z-index: 4; /* Below widgets (10) and memos (6) */
+    display: none; /* Initially hidden */
+    /* Removed box-shadow as background is gone */
+    box-shadow: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 0;
+    transform: translateY(100%); /* Start off-screen */
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); /* Stronger shadow for visibility */
+    pointer-events: none; /* Allow clicks to pass through */
+}
+
+#weather-warning-container.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0); /* Slide in */
+    pointer-events: auto; /* Allow interaction when visible if needed */
+}
