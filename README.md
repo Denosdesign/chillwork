@@ -29,7 +29,7 @@ This project was originally developed to enhance my personal work productivity, 
 ### 🎯 Focus Tools | 專注工具
 - ✅ To-do list | 待辦事項清單
 - 📝 Memo/sticky notes | 便利貼功能
-- 🤣 Meme widget (for break time) | Meme 小工具（休息時間看個梗圖）
+- 🐱 ??? widget (for break time) | ??? 小工具
 
 ### 🎨 Customizable Backgrounds | 個人化背景
 - YouTube video background playback | YouTube 影片背景播放
