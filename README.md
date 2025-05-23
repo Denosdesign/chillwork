@@ -1,7 +1,7 @@
 # Chill Work
 
-A clean and elegant full-screen work environment that keeps you focused while staying aware of time and weather.  
-一個簡潔優雅的全屏工作環境，讓你在專注工作的同時保持對時間和天氣的掌握。
+A clean full-screen work environment that keeps you focused.  
+一個讓你專注工作的簡潔工具。
 
 ![Chill Work](https://img.shields.io/badge/Status-Active-brightgreen) ![HTML](https://img.shields.io/badge/HTML-CSS-blue) ![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla-yellow)
 
