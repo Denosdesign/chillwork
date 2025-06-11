@@ -12,7 +12,6 @@ html, body {
     font-family: 'Montserrat', sans-serif;
     font-family: var(--font-family-main, 'Montserrat', 'Noto Sans TC', sans-serif);
     font-size: 16px;
-    background-color: #f0f0f0; /* Default background if media fails */
 }
 
 body {
