@@ -30,6 +30,7 @@ This project was originally developed to enhance my personal work productivity, 
 - ✅ To-do list | 待辦事項清單
 - 📝 Memo/sticky notes | 便利貼功能
 - 🐱 ??? widget (for break time) | ??? 小工具
+- 💧 Water tracker widget | 喝水紀錄小工具
 
 ### 🎨 Customizable Backgrounds | 個人化背景
 - YouTube video background playback | YouTube 影片背景播放

@@ -114,6 +114,20 @@
             </div>
             <div class="resize-handle" data-resize-for="todo-widget"></div>
         </div>
+
+        <!-- Water Tracker Widget -->
+        <div id="water-widget" class="widget draggable-widget hidden" data-widget-id="water">
+            <div class="widget-header">
+                <span data-lang-key="widget_water_title">💧 Water Tracker</span>
+                <button class="widget-close-btn" data-lang-key="widget_close_aria" data-lang-attr="aria-label" aria-label="Close Water Widget">&times;</button>
+            </div>
+            <div class="widget-content">
+                <div id="water-today" class="water-today"><span id="water-today-amount">0</span> ml</div>
+                <button id="add-water-btn" class="modal-btn widget-btn" data-lang-key="widget_water_add_button">Drink 250ml</button>
+                <div id="water-chart" class="water-chart"></div>
+            </div>
+            <div class="resize-handle" data-resize-for="water-widget"></div>
+        </div>
     </div>
 
     <!-- Settings & Help Modal -->
@@ -223,7 +237,8 @@
                     <div class="setting-group button-row">
                         <button class="modal-btn" data-action="fullscreen" data-lang-key="settings_button_fullscreen">切換全屏</button>
                         <button class="modal-btn" data-action="toggle-todo" data-lang-key="settings_button_todo">待辦事項</button>
-                        <button class="modal-btn" data-action="add-memo" data-lang-key="settings_button_add_memo">新增 Memo</button> 
+                        <button class="modal-btn" data-action="toggle-water" data-lang-key="settings_button_water">喝水紀錄</button>
+                        <button class="modal-btn" data-action="add-memo" data-lang-key="settings_button_add_memo">新增 Memo</button>
                     </div>
                 </section>
 
@@ -235,7 +250,8 @@
                         <li><kbd>F</kbd> <span data-lang-key="shortcut_toggle_fullscreen">切換全螢幕</span></li>
                         <li><kbd>W</kbd> <span data-lang-key="shortcut_update_weather">更新天氣資訊</span></li>
                         <li><kbd>T</kbd> <span data-lang-key="shortcut_toggle_todo">顯示/隱藏待辦事項</span></li>
-                        <li><kbd>N</kbd> <span data-lang-key="shortcut_add_memo">新增 Memo</span></li> 
+                        <li><kbd>D</kbd> <span data-lang-key="shortcut_toggle_water">顯示/隱藏喝水紀錄</span></li>
+                        <li><kbd>N</kbd> <span data-lang-key="shortcut_add_memo">新增 Memo</span></li>
                         <li><kbd>Esc</kbd> <span data-lang-key="shortcut_close_modal">關閉此視窗</span></li>
                     </ul>
                 </section>
