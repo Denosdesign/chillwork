@@ -65,6 +65,8 @@ const App = (() => {
         widget_meme_new_button: { 'zh-TW': 'Meow!', 'en': 'Meow!' },
         widget_todo_placeholder: { 'zh-TW': '新增待辦事項...', 'en': 'Add a new task...' },
         widget_todo_add_aria: { 'zh-TW': '新增任務', 'en': 'Add Task' },
+        widget_water_title: { 'zh-TW': '💧 喝水紀錄', 'en': '💧 Water Tracker' },
+        widget_water_add_button: { 'zh-TW': '喝一杯', 'en': 'Add Water' },
         // Settings Modal
         settings_modal_title: { 'zh-TW': '設定與幫助', 'en': 'Settings & Help' },
         settings_section_background: { 'zh-TW': '背景設定', 'en': 'Background Settings' },
@@ -87,6 +89,7 @@ const App = (() => {
         settings_label_language: { 'zh-TW': '語言:', 'en': 'Language:' },
         settings_button_fullscreen: { 'zh-TW': '切換全螢幕', 'en': 'Toggle Fullscreen' },
         settings_button_todo: { 'zh-TW': '待辦事項', 'en': 'To-Do List' },
+        settings_button_water: { 'zh-TW': '喝水紀錄', 'en': 'Water Tracker' },
         settings_button_add_memo: { 'zh-TW': '新增 Memo', 'en': 'Add Memo' },
         settings_section_shortcuts: { 'zh-TW': '鍵盤快捷鍵', 'en': 'Keyboard Shortcuts' },
         // Shortcuts
@@ -94,6 +97,7 @@ const App = (() => {
         shortcut_toggle_fullscreen: { 'zh-TW': '切換全螢幕', 'en': 'Toggle fullscreen mode' },
         shortcut_update_weather: { 'zh-TW': '更新天氣資訊', 'en': 'Update weather info' },
         shortcut_toggle_todo: { 'zh-TW': '顯示/隱藏待辦事項', 'en': 'Show/Hide To-Do List' },
+        shortcut_toggle_water: { 'zh-TW': '顯示/隱藏喝水紀錄', 'en': 'Show/Hide Water Tracker' },
         shortcut_add_memo: { 'zh-TW': '新增 Memo', 'en': 'Add Memo' },
         shortcut_close_modal: { 'zh-TW': '關閉此視窗', 'en': 'Close this window' },
         // Clock & Date (Weekdays)
@@ -190,6 +194,10 @@ const App = (() => {
         todoInput: document.getElementById('todo-input'),
         addTodoBtn: document.getElementById('add-todo-btn'),
         todoList: document.getElementById('todo-list'),
+        waterWidget: document.getElementById('water-widget'),
+        addWaterBtn: document.getElementById('add-water-btn'),
+        waterTodayAmount: document.getElementById('water-today-amount'),
+        waterChart: document.getElementById('water-chart'),
         widgetCloseBtns: document.querySelectorAll('.widget-close-btn'),
         memoContainer: document.getElementById('memo-container'),
         historyButtons: document.querySelectorAll('.history-btn'), // Add history buttons
@@ -222,6 +230,7 @@ const App = (() => {
         weatherWarningEnabled: true,
         widgetPositions: {},
         memos: [],
+        waterHistory: {},
         activeDraggable: {
             element: null,
             offsetX: 0,
@@ -370,18 +379,24 @@ const App = (() => {
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             return R * c;
         },
-         extractYoutubeId: (input) => {
-             if (!input) return null;
-             const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-             const match = input.match(youtubeRegex);
-             if (match && match[1]) {
-                 return match[1];
-             }
-             if (/^[a-zA-Z0-9_-]{11}$/.test(input)) {
-                 return input;
-             }
-             return null;
-         }
+        extractYoutubeId: (input) => {
+            if (!input) return null;
+            const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+            const match = input.match(youtubeRegex);
+            if (match && match[1]) {
+                return match[1];
+            }
+            if (/^[a-zA-Z0-9_-]{11}$/.test(input)) {
+                return input;
+            }
+            return null;
+        },
+        formatDate: (date) => {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
     };
 
     const Notify = {
@@ -1270,9 +1285,89 @@ const App = (() => {
              if (savedVisibility === 'false' && DOMElements.todoWidget) { DOMElements.todoWidget.classList.add('hidden'); }
              else if (savedVisibility === 'true' && DOMElements.todoWidget) { DOMElements.todoWidget.classList.remove('hidden'); }
              Draggable.loadWidgetPosition('todo-widget');
-             Resizable.setupWidgetResizing(DOMElements.todoWidget);
-         }
-     };
+        Resizable.setupWidgetResizing(DOMElements.todoWidget);
+        }
+    };
+
+    const WaterWidget = {
+        DAILY_GOAL: 2000,
+        toggle: () => {
+            if (!DOMElements.waterWidget) return;
+            const isHidden = DOMElements.waterWidget.classList.toggle('hidden');
+            localStorage.setItem('waterWidgetVisible', !isHidden);
+        },
+        loadHistory: () => {
+            const saved = localStorage.getItem('waterHistory');
+            if (saved) {
+                try { state.waterHistory = JSON.parse(saved); } catch (e) { state.waterHistory = {}; localStorage.removeItem('waterHistory'); }
+            }
+        },
+        saveHistory: () => {
+            localStorage.setItem('waterHistory', JSON.stringify(state.waterHistory));
+        },
+        addWater: (amount = 250) => {
+            const todayKey = Utils.formatDate(new Date());
+            if (!state.waterHistory[todayKey]) state.waterHistory[todayKey] = 0;
+            state.waterHistory[todayKey] += amount;
+            WaterWidget.saveHistory();
+            WaterWidget.renderToday();
+            WaterWidget.renderChart();
+        },
+        getWeeklyData: () => {
+            const data = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const key = Utils.formatDate(d);
+                data.push({
+                    day: d.getDay(),
+                    amount: state.waterHistory[key] || 0
+                });
+            }
+            return data;
+        },
+        renderToday: () => {
+            if (DOMElements.waterTodayAmount) {
+                const todayKey = Utils.formatDate(new Date());
+                const amt = state.waterHistory[todayKey] || 0;
+                DOMElements.waterTodayAmount.textContent = amt;
+            }
+        },
+        renderChart: () => {
+            if (!DOMElements.waterChart) return;
+            const weekly = WaterWidget.getWeeklyData();
+            DOMElements.waterChart.innerHTML = '';
+            weekly.forEach(item => {
+                const bar = document.createElement('div');
+                bar.className = 'water-bar';
+                const inner = document.createElement('div');
+                inner.className = 'water-bar-inner';
+                const height = Math.min(item.amount / WaterWidget.DAILY_GOAL, 1) * 100;
+                inner.style.height = height + '%';
+                const label = document.createElement('span');
+                label.className = 'water-label';
+                const name = Language.getText('weekday_' + item.day);
+                label.textContent = state.currentLanguage === 'en' ? name.charAt(0) : name.replace('星期','');
+                bar.appendChild(inner);
+                bar.appendChild(label);
+                DOMElements.waterChart.appendChild(bar);
+            });
+        },
+        setup: () => {
+            WaterWidget.loadHistory();
+            WaterWidget.renderToday();
+            WaterWidget.renderChart();
+            DOMElements.addWaterBtn?.addEventListener('click', () => WaterWidget.addWater());
+            const header = DOMElements.waterWidget?.querySelector('.widget-header');
+            header?.addEventListener('mousedown', (event) => Draggable.startDrag(event, DOMElements.waterWidget, 'widget'));
+            DOMElements.waterWidget?.querySelector('.widget-close-btn')?.addEventListener('click', WaterWidget.toggle);
+            const savedVisibility = localStorage.getItem('waterWidgetVisible');
+            if (savedVisibility === 'false' && DOMElements.waterWidget) DOMElements.waterWidget.classList.add('hidden');
+            else if (savedVisibility === 'true' && DOMElements.waterWidget) DOMElements.waterWidget.classList.remove('hidden');
+            Draggable.loadWidgetPosition('water-widget');
+            Resizable.setupWidgetResizing(DOMElements.waterWidget);
+        }
+    };
 
     const MemoManager = {
         createMemoElement: (memo) => {
@@ -1875,7 +1970,11 @@ const App = (() => {
                     break;
                 case 'toggle-todo':
                     TodoWidget.toggle();
-                    Modal.close(); 
+                    Modal.close();
+                    break;
+                case 'toggle-water':
+                    WaterWidget.toggle();
+                    Modal.close();
                     break;
                 case 'add-memo':
                     MemoManager.addMemo();
@@ -2121,11 +2220,12 @@ const App = (() => {
                      if (isModalVisible) Modal.close(); else Modal.open(); 
                      e.preventDefault(); break;
                  case 'f': Fullscreen.toggle(); e.preventDefault(); break;
-                 case 'w': Weather.fetch(false); Notify.show('正在更新天氣資訊'); e.preventDefault(); break;
-                 case 'm': MemeWidget.toggle(); e.preventDefault(); break;
-                 case 't': TodoWidget.toggle(); e.preventDefault(); break;
-                 case 'n': MemoManager.addMemo(); e.preventDefault(); break; 
-             }
+                case 'w': Weather.fetch(false); Notify.show('正在更新天氣資訊'); e.preventDefault(); break;
+                case 'm': MemeWidget.toggle(); e.preventDefault(); break;
+                case 't': TodoWidget.toggle(); e.preventDefault(); break;
+                case 'd': WaterWidget.toggle(); e.preventDefault(); break;
+                case 'n': MemoManager.addMemo(); e.preventDefault(); break;
+            }
          }
      };
 
@@ -3063,6 +3163,7 @@ const App = (() => {
         Keyboard.setup();
         MemeWidget.setup(); // Might need translation updates
         TodoWidget.setup(); // Might need translation updates
+        WaterWidget.setup();
         MemoManager.setup();
         ContextMenu.setup(); 
         initialAnimation();

@@ -1618,3 +1618,44 @@ button.hidden {
     transform: translateY(0); /* Slide in */
     pointer-events: auto; /* Allow interaction when visible if needed */
 }
+
+/* Water Tracker Widget */
+#water-today {
+    text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+}
+
+#water-chart {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    height: 100px;
+    gap: 4px;
+    margin-top: 10px;
+}
+
+.water-bar {
+    flex: 1;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.water-bar-inner {
+    width: 100%;
+    background-color: rgba(100, 180, 255, 0.8);
+    border-radius: 4px 4px 0 0;
+    display: block;
+}
+
+.water-label {
+    position: absolute;
+    bottom: -18px;
+    font-size: 0.7rem;
+    color: #fff;
+    opacity: 0.8;
+}
