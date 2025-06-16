@@ -100,7 +100,7 @@ If you have any questions or suggestions, feel free to contact me through GitHub
 
 ---
 
-> 💡 **Tip | 小提示**: This tool works best in full-screen mode. Press F11 to enter full-screen for the optimal experience.  
+> This tool works best in full-screen mode. Press F11 to enter full-screen for the optimal experience.  
 > 這個工具最適合在全屏模式下使用，可以按 F11 進入全屏獲得最佳體驗。
 
-*Last updated: 2025 | 最後更新: 2025* 
+*Last updated: 16/6/2025
