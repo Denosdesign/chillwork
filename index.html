@@ -240,6 +240,10 @@
                         <button class="modal-btn" data-action="toggle-water" data-lang-key="settings_button_water">喝水紀錄</button>
                         <button class="modal-btn" data-action="add-memo" data-lang-key="settings_button_add_memo">新增 Memo</button>
                     </div>
+                    <div class="setting-group checkbox-group">
+                        <input type="checkbox" id="debug-mode-checkbox">
+                        <label for="debug-mode-checkbox" data-lang-key="settings_label_debug_mode">Enable Debug Mode</label>
+                    </div>
                 </section>
 
                 <!-- Shortcuts Section -->
@@ -312,6 +316,7 @@
     <!-- YouTube IFrame Player API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <!-- Main Script -->
+    <script src="js/logger.js"></script>
     <script src="js/script.js"></script>
 </body>
 </html> 
