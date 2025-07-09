@@ -91,6 +91,7 @@ const App = (() => {
         settings_button_todo: { 'zh-TW': '待辦事項', 'en': 'To-Do List' },
         settings_button_water: { 'zh-TW': '喝水紀錄', 'en': 'Water Tracker' },
         settings_button_add_memo: { 'zh-TW': '新增 Memo', 'en': 'Add Memo' },
+        settings_label_debug_mode: { 'zh-TW': '啟用除錯模式', 'en': 'Enable Debug Mode' },
         settings_section_shortcuts: { 'zh-TW': '鍵盤快捷鍵', 'en': 'Keyboard Shortcuts' },
         // Shortcuts
         shortcut_toggle_modal: { 'zh-TW': '顯示/隱藏此視窗', 'en': 'Show/Hide this window' },
@@ -262,6 +263,7 @@ const App = (() => {
         isFocusTimerActive: false,
         focusTimerInterval: null,
         focusTimerEndTime: null,
+        debugMode: false,
         focusTimerDuration: 25 * 60, // Default 25 minutes in second
     };
 
@@ -293,7 +295,7 @@ const App = (() => {
             if (translations) {
                 return translations[state.currentLanguage] || translations[Language.DEFAULT_LANG] || key; 
             } else {
-                console.warn(`[Language] Translation key not found: ${key}`);
+                Logger.warn(`[Language] Translation key not found: ${key}`);
                 return key; 
             }
         },
@@ -311,7 +313,7 @@ const App = (() => {
                     targetElement.setAttribute(attr, translatedText);
                 }
             } else if (key && !targetElement) {
-                 console.warn(`[Language] Target element not found for key: ${key}, target selector: ${element.dataset.langKeyTarget}`);
+                 Logger.warn(`[Language] Target element not found for key: ${key}, target selector: ${element.dataset.langKeyTarget}`);
             }
         },
 
@@ -325,13 +327,13 @@ const App = (() => {
                        try {
                            // state.languageChoiceInstance.destroy(); 
                            // state.languageChoiceInstance = new Choices(...) // Re-create needed
-                       } catch(e) { console.error("Error re-initializing language Choices:", e); }
+                       } catch(e) { Logger.error("Error re-initializing language Choices:", e); }
                   } else {
                   }
              }
 
             Weather.initializeLocationSelect().catch(err => { // Call async function // Restore this call
-                 console.error("[Language] Error re-initializing location select:", err);
+                 Logger.error("[Language] Error re-initializing location select:", err);
             }); 
             
             Clock.update(); 
@@ -345,14 +347,14 @@ const App = (() => {
         handleLanguageChange: (event) => {
             const newLang = event.target.value;
             if (newLang && Language.SUPPORTED_LANGS.includes(newLang) && newLang !== state.currentLanguage) {
-                console.log(`[Language.handleLanguageChange] Language changed to: ${newLang}`);
+                Logger.log(`[Language.handleLanguageChange] Language changed to: ${newLang}`);
                 state.currentLanguage = newLang;
                 Language.savePreference();
                 Language.translateUI(); // Trigger UI update
             } else if (newLang === state.currentLanguage) {
-                 console.log(`[Language.handleLanguageChange] Selected language (${newLang}) is already active.`);
+                 Logger.log(`[Language.handleLanguageChange] Selected language (${newLang}) is already active.`);
             } else {
-                console.warn(`[Language.handleLanguageChange] Invalid or unsupported language selected: ${newLang}`);
+                Logger.warn(`[Language.handleLanguageChange] Invalid or unsupported language selected: ${newLang}`);
             }
         }
     };
@@ -457,10 +459,10 @@ const App = (() => {
         getStationCode: async () => {
             let savedCode = localStorage.getItem('userWeatherStationCode');
             if (savedCode && HKO_STATIONS[savedCode]) { // Check if saved code is valid
-                console.log(`[Weather.getStationCode] Found saved code: ${savedCode}`);
+                Logger.log(`[Weather.getStationCode] Found saved code: ${savedCode}`);
                 return savedCode;
             }
-            console.log("[Weather.getStationCode] No valid saved code found, attempting auto-detection.");
+            Logger.log("[Weather.getStationCode] No valid saved code found, attempting auto-detection.");
             localStorage.removeItem('userWeatherStationCode'); // Remove invalid code if any
 
             try {
@@ -470,7 +472,7 @@ const App = (() => {
                     });
                 });
                 const { latitude: userLat, longitude: userLng } = position.coords;
-                console.warn("[Weather.getStationCode] Auto-detection needs station coordinates - fetching RSTM list.");
+                Logger.warn("[Weather.getStationCode] Auto-detection needs station coordinates - fetching RSTM list.");
                 const response = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/opendata.php?dataType=RSTM&lang=tc'); // Fetch station list with coords
                 if (!response.ok) throw new Error(`Station list fetch failed: ${response.status}`);
                 const stationListData = await response.json();
@@ -491,9 +493,9 @@ const App = (() => {
                                  if (code) {
                                      minDistance = distance;
                                      nearestCode = code;
-                                     console.log(`[Weather.getStationCode] New nearest: ${stationFromApi.nameTC} (${code}), Dist: ${distance.toFixed(2)}km`);
+                                     Logger.log(`[Weather.getStationCode] New nearest: ${stationFromApi.nameTC} (${code}), Dist: ${distance.toFixed(2)}km`);
                                  } else {
-                                     console.warn(`[Weather.getStationCode] Could not find code for station from RSTM API: ${stationFromApi.nameTC}`);
+                                     Logger.warn(`[Weather.getStationCode] Could not find code for station from RSTM API: ${stationFromApi.nameTC}`);
                                  }
                              }
                          }
@@ -501,23 +503,23 @@ const App = (() => {
                  }
 
                 if (nearestCode) {
-                    console.log(`[Weather.getStationCode] Auto-detected nearest station code: ${nearestCode}`);
+                    Logger.log(`[Weather.getStationCode] Auto-detected nearest station code: ${nearestCode}`);
                     localStorage.setItem('userWeatherStationCode', nearestCode);
                     return nearestCode;
                 } else {
-                     console.warn("[Weather.getStationCode] Could not auto-detect nearest station. Falling back to HKO.");
+                     Logger.warn("[Weather.getStationCode] Could not auto-detect nearest station. Falling back to HKO.");
                      localStorage.setItem('userWeatherStationCode', 'HKO'); // Fallback to HKO
                      return 'HKO';
                 }
 
             } catch (error) {
-                console.error('[Weather.getStationCode] Error during auto-detection:', error);
+                Logger.error('[Weather.getStationCode] Error during auto-detection:', error);
                 if (error.code === 1 || error.code === 2) { // Geolocation permission denied or unavailable
                      Notify.show(Language.getText('notify_geolocation_error') || '無法獲取位置，請在設定中手動選擇地區', 'warning', 5000);
                 }
                  // Fallback to HKO if auto-detection fails
                  const fallbackCode = 'HKO';
-                 console.log(`[Weather.getStationCode] Falling back to default code: ${fallbackCode}`);
+                 Logger.log(`[Weather.getStationCode] Falling back to default code: ${fallbackCode}`);
                  localStorage.setItem('userWeatherStationCode', fallbackCode);
                 return fallbackCode; 
             }
@@ -539,7 +541,7 @@ const App = (() => {
                 const stationDetails = getStationByCode(targetCode);
 
                 if (!stationDetails) {
-                     console.error(`[Weather.fetch] Invalid station code determined: ${targetCode}`);
+                     Logger.error(`[Weather.fetch] Invalid station code determined: ${targetCode}`);
                      DOMElements.weather.textContent = Language.getText('weather_err_unavailable');
                      if (DOMElements.weatherWarningContainer) DOMElements.weatherWarningContainer.classList.remove('visible');
                      return;
@@ -547,13 +549,13 @@ const App = (() => {
                 
                 // Determine the display name based on target code and current language
                 const displayStationName = (state.currentLanguage === 'en') ? stationDetails.nameEN : stationDetails.nameTC;
-                console.log(`[Weather.fetch] Target station: ${displayStationName} (Code: ${targetCode})`);
+                Logger.log(`[Weather.fetch] Target station: ${displayStationName} (Code: ${targetCode})`);
 
                 const apiUrl = `https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=${apiLang}`;
                 const response = await fetch(apiUrl);
                  if (!response.ok) throw new Error(`Weather data fetch failed: ${response.statusText} (Status: ${response.status})`); 
                 const data = await response.json();
-                console.log("[Weather.fetch] Raw API data received."); 
+                Logger.log("[Weather.fetch] Raw API data received."); 
                 // console.debug("[Weather.fetch] Raw API data details:", data); // Optional: for deep debugging
 
                 const tempDataByCode = {};
@@ -565,45 +567,45 @@ const App = (() => {
                              const code = getStationCodeByName(item.place); 
                              if (code) {
                                  if (tempDataByCode[code] !== undefined) {
-                                     console.warn(`[Weather.fetch Mapping] Temp: Duplicate entry found for code ${code} (Place: ${item.place}). Overwriting.`);
+                                     Logger.warn(`[Weather.fetch Mapping] Temp: Duplicate entry found for code ${code} (Place: ${item.place}). Overwriting.`);
                                  }
                                  tempDataByCode[code] = item.value; 
                              } else {
                                  if (item.place.trim()) { 
--                                     console.warn(`[Weather.fetch] Could not map temp place "${item.place}" to a known station code.`);
-+                                     console.warn(`[Weather.fetch Mapping] Temp: Failed to map place "${item.place}" to any known code.`);
+-                                     Logger.warn(`[Weather.fetch] Could not map temp place "${item.place}" to a known station code.`);
++                                     Logger.warn(`[Weather.fetch Mapping] Temp: Failed to map place "${item.place}" to any known code.`);
                                  } 
                              }
                          }
                      });
                  } else {
-                      console.warn("[Weather.fetch] Temperature data missing or in unexpected format in API response.");
+                      Logger.warn("[Weather.fetch] Temperature data missing or in unexpected format in API response.");
                  }
                  
                  if (data && data.humidity && data.humidity.data) {
 +                    // 列印所有濕度資料的地點名稱
-+                    console.log('[Weather.fetch] 濕度資料地點名稱：', data.humidity.data.map(item => item.place));
++                    Logger.log('[Weather.fetch] 濕度資料地點名稱：', data.humidity.data.map(item => item.place));
                      data.humidity.data.forEach(item => {
                          if (item && item.place) {
                              const code = getStationCodeByName(item.place);
                               if (code) {
                                     if (humidityDataByCode[code] !== undefined) {
-                                      console.warn(`[Weather.fetch Mapping] Humidity: Duplicate entry found for code ${code} (Place: ${item.place}). Overwriting.`);
+                                      Logger.warn(`[Weather.fetch Mapping] Humidity: Duplicate entry found for code ${code} (Place: ${item.place}). Overwriting.`);
                                  }
                                  humidityDataByCode[code] = item.value;
                              } else {
                                   if (item.place.trim()) { 
-                                       console.warn(`[Weather.fetch Mapping] Humidity: Failed to map place "${item.place}" to any known code.`);
+                                       Logger.warn(`[Weather.fetch Mapping] Humidity: Failed to map place "${item.place}" to any known code.`);
                                    } 
                               }
                          }
                      });
                  } else {
-                     console.warn("[Weather.fetch] Humidity data missing or in unexpected format in API response.");
+                     Logger.warn("[Weather.fetch] Humidity data missing or in unexpected format in API response.");
                  }
 
-                  console.log("[Weather.fetch] Mapped Temp Data:", tempDataByCode);
-                  console.log("[Weather.fetch] Mapped Humidity Data:", humidityDataByCode);
+                  Logger.log("[Weather.fetch] Mapped Temp Data:", tempDataByCode);
+                  Logger.log("[Weather.fetch] Mapped Humidity Data:", humidityDataByCode);
 
                 const temp = tempDataByCode[targetCode];
                 let humidity = humidityDataByCode[targetCode];
@@ -634,7 +636,7 @@ const App = (() => {
                      if (firstWarning) {
                           warningInfo = ` <span class="weather-item warning">⚠️ ${firstWarning}</span>`;
                      } else {
-                          console.log("[Weather.fetch] Warning message array present but contains no valid message.");
+                          Logger.log("[Weather.fetch] Warning message array present but contains no valid message.");
                      }
                 } 
                 
@@ -643,9 +645,9 @@ const App = (() => {
                 if (data.uvindex && data.uvindex.data && data.uvindex.data.length > 0) {
                     uviValue = data.uvindex.data[0].value;
                     uviDesc = data.uvindex.data[0].desc; // Description like 'Low', '低'
-                    console.log(`[Weather.fetch] UV Index found: ${uviValue} (${uviDesc})`);
+                    Logger.log(`[Weather.fetch] UV Index found: ${uviValue} (${uviDesc})`);
                 } else {
-                    console.warn("[Weather.fetch] UV Index data not found in API response.");
+                    Logger.warn("[Weather.fetch] UV Index data not found in API response.");
                 }
                  
                 const weatherHTML = `
@@ -662,7 +664,7 @@ const App = (() => {
                      if (firstWarning) {
                           warningMessage = `⚠️ ${firstWarning}`; // Only store the warning text
                      } else {
-                          console.log("[Weather.fetch] Warning message array present but contains no valid message.");
+                          Logger.log("[Weather.fetch] Warning message array present but contains no valid message.");
                      }
                 } 
                 
@@ -680,11 +682,11 @@ const App = (() => {
                          }, 300); // Match CSS transition duration
                      }
                 } else {
-                     console.warn("[Weather.fetch] Weather warning container element not found.");
+                     Logger.warn("[Weather.fetch] Weather warning container element not found.");
                 }
                 
             } catch (error) {
-                console.error('獲取或處理天氣數據時出錯:', error);
+                Logger.error('獲取或處理天氣數據時出錯:', error);
                  if (DOMElements.weather) {
                     DOMElements.weather.textContent = Language.getText('weather_err_unavailable');
                  }
@@ -695,26 +697,26 @@ const App = (() => {
             }
         },
         initializeLocationSelect: async () => {
-            console.log("[Weather.initLocSelect] Starting initialization.");
+            Logger.log("[Weather.initLocSelect] Starting initialization.");
             if (state.locationChoiceInstance) {
-                 console.log("[Weather.initLocSelect] Destroying existing Choices instance:", state.locationChoiceInstance);
+                 Logger.log("[Weather.initLocSelect] Destroying existing Choices instance:", state.locationChoiceInstance);
                  try {
                       state.locationChoiceInstance.destroy();
-                      console.log("[Weather.initLocSelect] Existing instance destroyed.");
+                      Logger.log("[Weather.initLocSelect] Existing instance destroyed.");
                  } catch (e) {
-                      console.error("[Weather.initLocSelect] Error destroying Choices instance:", e);
+                      Logger.error("[Weather.initLocSelect] Error destroying Choices instance:", e);
                  }
                  state.locationChoiceInstance = null; 
             }
 
             const selectElement = DOMElements.locationSelect;
             if (!selectElement) {
-                console.error("[Weather.initLocSelect] Location select element not found.");
+                Logger.error("[Weather.initLocSelect] Location select element not found.");
                 return Promise.reject("Location select element not found."); // Return rejected promise
             }
 
             selectElement.innerHTML = ''; 
-            console.log("[Weather.initLocSelect] Cleared native select options.");
+            Logger.log("[Weather.initLocSelect] Cleared native select options.");
 
             const choices = [];
             const currentCode = state.selectedLocationCode; 
@@ -731,14 +733,14 @@ const App = (() => {
                  });
             }
             
-            console.log(`[Weather.initLocSelect] Generated ${choices.length} choices for language '${lang}'.`);
+            Logger.log(`[Weather.initLocSelect] Generated ${choices.length} choices for language '${lang}'.`);
             
             selectElement.add(new Option(Language.getText('selectLocationPlaceholder'), '', true, true)); // text, value, defaultSelected, selected
 
             return new Promise((resolve, reject) => { // Return a promise
                 
                 try {
-                     console.log("[Weather.initLocSelect] Creating new Choices instance...");
+                     Logger.log("[Weather.initLocSelect] Creating new Choices instance...");
                     state.locationChoiceInstance = new Choices(selectElement, {
                         searchEnabled: true,
                         itemSelectText: Language.getText('itemSelectText'), // Use translated text
@@ -750,16 +752,16 @@ const App = (() => {
                         noResultsText: Language.getText('noResultsText'),
                         noChoicesText: Language.getText('noChoicesText')
                     });
-                     console.log("[Weather.initLocSelect] New Choices instance created:", state.locationChoiceInstance);
+                     Logger.log("[Weather.initLocSelect] New Choices instance created:", state.locationChoiceInstance);
 
                     state.locationChoiceInstance.setChoices(choices, 'value', 'label', true); // true to replace all choices
-                    console.log("[Weather.initLocSelect] Choices set in Choices instance.");
+                    Logger.log("[Weather.initLocSelect] Choices set in Choices instance.");
                     
                     selectElement.addEventListener('change', Weather.handleLocationChange);                    
-                     console.log("[Weather.initLocSelect] Event listener attached.");
+                     Logger.log("[Weather.initLocSelect] Event listener attached.");
                      resolve(); // Resolve the promise on success
                 } catch (error) {
-                    console.error("[Weather.initLocSelect] Failed to initialize Choices.js:", error);
+                    Logger.error("[Weather.initLocSelect] Failed to initialize Choices.js:", error);
                     state.locationChoiceInstance = null; // Ensure it's null on error
                     reject(error); // Reject the promise on error
                 }
@@ -774,7 +776,7 @@ const App = (() => {
                  
                 const stationDetails = getStationByCode(selectedCode);
                 if (!stationDetails) {
-                     console.error(`[Weather.handleLocationChange] Invalid station code selected: ${selectedCode}`);
+                     Logger.error(`[Weather.handleLocationChange] Invalid station code selected: ${selectedCode}`);
                      Notify.show("選擇了無效的地區代碼", "error");
                      return;
                 }
@@ -784,13 +786,13 @@ const App = (() => {
                 Weather.fetch(false); // Re-fetch weather for the new location
                 Modal.close();
             } catch (e) {
-                console.error("Error handling location change:", e);
+                Logger.error("Error handling location change:", e);
                 Notify.show("設置地區時出錯", "error");
             }
         },
          start: async () => {
              if (!state.weatherEnabled) {
-                 console.log("[Weather.start] Weather display disabled. Preventing fetch/interval.");
+                 Logger.log("[Weather.start] Weather display disabled. Preventing fetch/interval.");
                  return; 
              }
              
@@ -804,7 +806,7 @@ const App = (() => {
              if (state.weatherUpdateInterval) {
                 clearInterval(state.weatherUpdateInterval);
                 state.weatherUpdateInterval = null;
-                console.log("[Weather.stop] Weather update interval cleared.");
+                Logger.log("[Weather.stop] Weather update interval cleared.");
              }
              if (DOMElements.weatherContainer) DOMElements.weatherContainer.classList.add('hidden');
              if (DOMElements.weatherWarningContainer) {
@@ -818,25 +820,25 @@ const App = (() => {
          createYouTubePlayer: () => {
              const videoId = state.pendingYouTubeVideoId;
              const startTime = state.initialYouTubeStartTime;
-             console.log(`[Background.createYouTubePlayer] Attempting to create player for ID: ${videoId}, Start time: ${startTime}`);
+             Logger.log(`[Background.createYouTubePlayer] Attempting to create player for ID: ${videoId}, Start time: ${startTime}`);
 
              if (!videoId) {
-                 console.warn("[Background.createYouTubePlayer] No pending video ID found.");
+                 Logger.warn("[Background.createYouTubePlayer] No pending video ID found.");
                  return;
              }
 
              const playerElement = document.getElementById('youtube-player');
              if (!playerElement) {
-                 console.error("[Background.createYouTubePlayer] YouTube player placeholder element not found!");
+                 Logger.error("[Background.createYouTubePlayer] YouTube player placeholder element not found!");
                  return;
              }
 
              if (state.youtubePlayer && typeof state.youtubePlayer.destroy === 'function') {
                 try {
                     state.youtubePlayer.destroy();
-                    console.log("[Background.createYouTubePlayer] Destroyed previous player instance.");
+                    Logger.log("[Background.createYouTubePlayer] Destroyed previous player instance.");
                 } catch(e) {
-                    console.error("[Background.createYouTubePlayer] Error destroying previous player:", e);
+                    Logger.error("[Background.createYouTubePlayer] Error destroying previous player:", e);
                 }
                 state.youtubePlayer = null;
              }
@@ -865,18 +867,18 @@ const App = (() => {
                          // 'onStateChange': Background.onPlayerStateChange // Add if needed later
                      }
                  });
-                 console.log("[Background.createYouTubePlayer] YT.Player instance created for:", videoId);
+                 Logger.log("[Background.createYouTubePlayer] YT.Player instance created for:", videoId);
                  state.mediaSource = state.youtubePlayer; // Store player instance as mediaSource
                  state.mediaType = 'youtube';
                  state.pendingYouTubeVideoId = null; // Clear pending ID after creation
              } catch (error) {
-                 console.error("[Background.createYouTubePlayer] Error creating YouTube player:", error);
+                 Logger.error("[Background.createYouTubePlayer] Error creating YouTube player:", error);
                  Notify.show('無法初始化 YouTube 播放器', 'error');
              }
          },
 
          onPlayerReady: (event) => {
-             console.log("[Background.onPlayerReady] Player ready for video:", event.target.getVideoData().video_id);
+             Logger.log("[Background.onPlayerReady] Player ready for video:", event.target.getVideoData().video_id);
              const playerIframe = event.target.getIframe();
              if (playerIframe) {
                  playerIframe.style.opacity = 0;
@@ -885,7 +887,7 @@ const App = (() => {
          },
 
          onPlayerError: (event) => {
-             console.error('[Background.onPlayerError] YouTube Player Error:', event.data);
+             Logger.error('[Background.onPlayerError] YouTube Player Error:', event.data);
              let errorMessage = 'YouTube 播放器錯誤';
              switch (event.data) {
                  case 2: errorMessage = '無效的 YouTube 影片 ID'; break;
@@ -902,19 +904,19 @@ const App = (() => {
          },
 
          clear: () => {
-             console.log("[Background.clear] Clearing background. Current type:", state.mediaType);
+             Logger.log("[Background.clear] Clearing background. Current type:", state.mediaType);
              if (state.mediaType === 'youtube' && state.youtubePlayer && typeof state.youtubePlayer.destroy === 'function') {
                  try {
                     state.youtubePlayer.destroy();
-                    console.log("[Background.clear] YouTube player destroyed.");
+                    Logger.log("[Background.clear] YouTube player destroyed.");
                  } catch(e) {
-                     console.error("[Background.clear] Error destroying YouTube player:", e);
+                     Logger.error("[Background.clear] Error destroying YouTube player:", e);
                  }
                  state.youtubePlayer = null;
              } else if (state.mediaSource) { // Handle other types (video, image)
                  if (state.mediaType === 'video' && typeof state.mediaSource.pause === 'function') state.mediaSource.pause();
                  if (typeof state.mediaSource.remove === 'function') state.mediaSource.remove();
-                 console.log(`[Background.clear] Removed ${state.mediaType} element.`);
+                 Logger.log(`[Background.clear] Removed ${state.mediaType} element.`);
              }
 
              if (DOMElements.backgroundContainer) {
@@ -928,7 +930,7 @@ const App = (() => {
              }
              state.mediaSource = null;
              state.mediaType = null;
-             console.log("[Background.clear] Background cleared.");
+             Logger.log("[Background.clear] Background cleared.");
          },
 
          setImage: (src) => {
@@ -960,7 +962,7 @@ const App = (() => {
          },
 
          setYouTube: (videoId) => {
-             console.log(`[Background.setYouTube] User requested video ID: ${videoId}`);
+             Logger.log(`[Background.setYouTube] User requested video ID: ${videoId}`);
              if (!videoId) {
                  Notify.show('無效的 YouTube 影片 ID', 'error');
                  return;
@@ -974,10 +976,10 @@ const App = (() => {
 
              // If YT API is already loaded, create player directly. Otherwise, it will be created by onYouTubeIframeAPIReady.
              if (typeof YT !== 'undefined' && YT.Player) {
-                 console.log("[Background.setYouTube] YT API ready, creating player directly.");
+                 Logger.log("[Background.setYouTube] YT API ready, creating player directly.");
                  Background.createYouTubePlayer();
              } else {
-                  console.log("[Background.setYouTube] YT API not ready yet, player will be created by callback.");
+                  Logger.log("[Background.setYouTube] YT API not ready yet, player will be created by callback.");
                   // API loading is handled in App.init
              }
          },
@@ -989,7 +991,7 @@ const App = (() => {
                  if (!prefData.id) return;
              } else if (type === 'image' || type === 'video') {
                  if (typeof value === 'string' && value.startsWith('blob:')) {
-                     console.warn("Skipping save of temporary Object URL to preferences.");
+                     Logger.warn("Skipping save of temporary Object URL to preferences.");
                      return;
                  }
                  prefData.url = value;
@@ -1028,7 +1030,7 @@ const App = (() => {
                          loadedValue = DEFAULT_IMAGE_URL;
                      }
                  } catch (e) {
-                     console.error('Error loading saved media preference:', e);
+                     Logger.error('Error loading saved media preference:', e);
                      localStorage.removeItem('mediaPreference');
                      loadedType = 'image'; 
                      loadedValue = DEFAULT_IMAGE_URL;
@@ -1053,15 +1055,15 @@ const App = (() => {
                     const currentTime = state.youtubePlayer.getCurrentTime();
                     if (currentTime > 0) { 
                         localStorage.setItem('youtubePlaybackTime', currentTime);
-                        console.log(`[Background.saveYouTubeTime] Saved time: ${currentTime}`);
+                        Logger.log(`[Background.saveYouTubeTime] Saved time: ${currentTime}`);
                     }
                  } catch (e) {
-                      console.error("[Background.saveYouTubeTime] Error getting current time:", e);
+                      Logger.error("[Background.saveYouTubeTime] Error getting current time:", e);
                  }
              } else if (!state.youtubeResumeEnabled) {
                  // If resume is disabled, ensure no old time persists
                  localStorage.removeItem('youtubePlaybackTime');
-                 console.log("[Background.saveYouTubeTime] Resume disabled, cleared saved time.");
+                 Logger.log("[Background.saveYouTubeTime] Resume disabled, cleared saved time.");
              }
          }
      };
@@ -1081,7 +1083,7 @@ const App = (() => {
                 const isGif = Math.random() < 0.3; // 30% chance for a GIF
                 const endpoint = isGif ? 'gif' : '';
                 const apiUrl = `https://cataas.com/cat${endpoint ? '/' + endpoint : ''}?t=${Date.now()}`;
-                console.log(`[MemeWidget.fetchMeme] Fetching from: ${apiUrl}`);
+                Logger.log(`[MemeWidget.fetchMeme] Fetching from: ${apiUrl}`);
 
                 // Preload image in memory
                 const img = new Image(); 
@@ -1089,10 +1091,10 @@ const App = (() => {
                     DOMElements.memeImage.src = apiUrl; // Set src only when loaded
                     DOMElements.memeImage.alt = isGif ? 'Random Cat GIF' : 'Random Cat Image';
                     DOMElements.memeImage.classList.remove('loading'); // Remove loading class
-                    console.log("[MemeWidget.fetchMeme] Cat loaded.");
+                    Logger.log("[MemeWidget.fetchMeme] Cat loaded.");
                 };
                 img.onerror = () => {
-                    console.error("[MemeWidget.fetchMeme] Error loading cat image/gif.");
+                    Logger.error("[MemeWidget.fetchMeme] Error loading cat image/gif.");
                     Notify.show('無法加載貓咪圖片', 'error');
                     // Keep placeholder src on error
                     DOMElements.memeImage.alt = Language.getText('widget_meme_loading_alt'); 
@@ -1103,7 +1105,7 @@ const App = (() => {
                 
             } catch (error) {
                 // This catch block might be less likely to trigger now unless there's a setup error
-                console.error("獲取貓咪時出錯:", error);
+                Logger.error("獲取貓咪時出錯:", error);
                 Notify.show(`無法獲取貓咪: ${error.message}`, 'error');
                 DOMElements.memeImage.alt = Language.getText('widget_meme_loading_alt');
             }
@@ -1161,7 +1163,7 @@ const App = (() => {
                  try {
                      TodoWidget.state.tasks = JSON.parse(savedTasks);
                  } catch (e) {
-                     console.error("Error parsing saved tasks:", e);
+                     Logger.error("Error parsing saved tasks:", e);
                      TodoWidget.state.tasks = [];
                      localStorage.removeItem('todoTasks');
                  }
@@ -1174,7 +1176,7 @@ const App = (() => {
              try {
                  localStorage.setItem('todoTasks', JSON.stringify(TodoWidget.state.tasks));
              } catch (e) {
-                 console.error("Error saving tasks:", e);
+                 Logger.error("Error saving tasks:", e);
                  Notify.show("無法儲存待辦事項", "error");
              }
          },
@@ -1242,7 +1244,7 @@ const App = (() => {
                  
                  TodoWidget.saveTasks();
              } else {
-                 console.error(`TodoWidget: Task ID ${taskId} not found for toggle.`);
+                 Logger.error(`TodoWidget: Task ID ${taskId} not found for toggle.`);
              }
          },
          deleteTask: (taskId) => {
@@ -1256,7 +1258,7 @@ const App = (() => {
                  }
                  TodoWidget.saveTasks();
              } else {
-                 console.error(`TodoWidget: Task ID ${taskId} not found for deletion.`);
+                 Logger.error(`TodoWidget: Task ID ${taskId} not found for deletion.`);
              }
          },
          setup: () => {
@@ -1267,15 +1269,15 @@ const App = (() => {
                 DOMElements.todoInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') TodoWidget.addTask(); });
              }
              const header = DOMElements.todoWidget?.querySelector('.widget-header');
-             console.log("[TodoWidget.setup] Finding header for todo-widget:", header); // Log header finding
+             Logger.log("[TodoWidget.setup] Finding header for todo-widget:", header); // Log header finding
              if (header) {
                  header.addEventListener('mousedown', (event) => {
-                     console.log("[TodoWidget.setup] Mousedown detected on todo-widget header."); // Log mousedown
+                     Logger.log("[TodoWidget.setup] Mousedown detected on todo-widget header."); // Log mousedown
                      Draggable.startDrag(event, DOMElements.todoWidget, 'widget');
                  });
-                 console.log("[TodoWidget.setup] Mousedown listener attached to header."); // Log listener attached
+                 Logger.log("[TodoWidget.setup] Mousedown listener attached to header."); // Log listener attached
              } else {
-                 console.error("[TodoWidget.setup] Could not find header for todo-widget!");
+                 Logger.error("[TodoWidget.setup] Could not find header for todo-widget!");
              }
              // Close button
              const closeBtn = DOMElements.todoWidget?.querySelector('.widget-close-btn');
@@ -1468,7 +1470,7 @@ const App = (() => {
                 try {
                     state.memos = JSON.parse(savedMemos);
                 } catch (e) {
-                    console.error("Error parsing saved memos:", e);
+                    Logger.error("Error parsing saved memos:", e);
                     state.memos = [];
                     localStorage.removeItem('memos');
                 }
@@ -1480,13 +1482,13 @@ const App = (() => {
                 const memoEl = MemoManager.createMemoElement(memo);
                 DOMElements.memoContainer?.appendChild(memoEl);
             });
-             console.log("Memos loaded");
+             Logger.log("Memos loaded");
         },
         saveMemos: () => {
              try {
                  localStorage.setItem('memos', JSON.stringify(state.memos));
              } catch (e) {
-                 console.error("Error saving memos:", e);
+                 Logger.error("Error saving memos:", e);
                  Notify.show("無法儲存 Memos", "error");
              }
         },
@@ -1497,7 +1499,7 @@ const App = (() => {
 
     const Draggable = {
         startDrag: (event, element, type) => {
-            console.log(`[Draggable.startDrag] Called. Type: ${type}, Element:`, element, "Target:", event.target);
+            Logger.log(`[Draggable.startDrag] Called. Type: ${type}, Element:`, element, "Target:", event.target);
             // Prevent drag if clicking resize handle too
             if (type === 'widget' && event.target.closest('button, input, select, .widget-content, .resize-handle')) {
                  return; 
@@ -1506,7 +1508,7 @@ const App = (() => {
                   return; 
              }
             
-            console.log("[Draggable.startDrag] Proceeding with drag start."); // Log proceeding
+            Logger.log("[Draggable.startDrag] Proceeding with drag start."); // Log proceeding
             event.preventDefault(); 
 
             state.activeDraggable.element = element;
@@ -1567,9 +1569,9 @@ const App = (() => {
                 } else if (type === 'widget') {
                     const widgetId = element.id;
                     if (widgetId) {
-                       console.log(`[Draggable.stopDrag] Saving position for widget: ${widgetId}, Top: ${finalTop}, Left: ${finalLeft}`);
+                       Logger.log(`[Draggable.stopDrag] Saving position for widget: ${widgetId}, Top: ${finalTop}, Left: ${finalLeft}`);
                        state.widgetPositions[widgetId] = { top: finalTop, left: finalLeft };
-                        console.log("[Draggable.stopDrag] state.widgetPositions before save:", JSON.stringify(state.widgetPositions));
+                        Logger.log("[Draggable.stopDrag] state.widgetPositions before save:", JSON.stringify(state.widgetPositions));
                         localStorage.setItem('widgetPositions', JSON.stringify(state.widgetPositions));
                     }
                 }
@@ -1588,18 +1590,18 @@ const App = (() => {
                   try { 
                       positions = JSON.parse(savedPositions); 
                   } catch (e) { 
-                      console.error(`[Draggable.loadWidgetPosition] Error parsing saved positions: ${e}`); 
+                      Logger.error(`[Draggable.loadWidgetPosition] Error parsing saved positions: ${e}`); 
                       localStorage.removeItem('widgetPositions'); 
                   } 
               }
               
               const pos = positions[widgetId];
-              console.log(`[Draggable.loadWidgetPosition] Attempting to load position for: ${widgetId}. Found:`, pos);
+              Logger.log(`[Draggable.loadWidgetPosition] Attempting to load position for: ${widgetId}. Found:`, pos);
               const element = document.getElementById(widgetId);
               if (element && pos && pos.top && pos.left) {
                   element.style.top = pos.top;
                   element.style.left = pos.left;
-                  console.log(`[Draggable.loadWidgetPosition] Applied position to ${widgetId}: Top: ${pos.top}, Left: ${pos.left}`);
+                  Logger.log(`[Draggable.loadWidgetPosition] Applied position to ${widgetId}: Top: ${pos.top}, Left: ${pos.left}`);
               }
          }
     };
@@ -1625,7 +1627,7 @@ const App = (() => {
             document.addEventListener('mousemove', Resizable.resize);
             document.addEventListener('mouseup', Resizable.stopResize);
             document.addEventListener('mouseleave', Resizable.stopResize); 
-            console.log(`[Resizable.startResize] Started resizing ${type}:`, element);
+            Logger.log(`[Resizable.startResize] Started resizing ${type}:`, element);
         },
 
         resize: (event) => {
@@ -1652,7 +1654,7 @@ const App = (() => {
 
         stopResize: () => {
             if (!state.activeResizable.isResizing) return;
-            console.log(`[Resizable.stopResize] Stopped resizing.`);
+            Logger.log(`[Resizable.stopResize] Stopped resizing.`);
 
             const element = state.activeResizable.element;
             const type = state.activeResizable.type;
@@ -1670,7 +1672,7 @@ const App = (() => {
                     }
                 } else if (type === 'widget') {
                     // TODO: Save widget dimensions if needed (currently not saved)
-                    console.warn(`Widget resizing finished, but saving dimensions is not implemented yet for ID: ${element.id}`);
+                    Logger.warn(`Widget resizing finished, but saving dimensions is not implemented yet for ID: ${element.id}`);
                 }
             }
 
@@ -1687,16 +1689,16 @@ const App = (() => {
              if (handle) {
                  handle.addEventListener('mousedown', (event) => Resizable.startResize(event, widgetElement, 'widget'));
              } else {
-                  console.warn(`[Resizable] Could not find resize handle for widget: ${widgetElement.id}`);
+                  Logger.warn(`[Resizable] Could not find resize handle for widget: ${widgetElement.id}`);
              }
         }
     };
 
     const Modal = {
         setup: () => {
-            console.log("[Modal.setup] Starting setup..."); // Add start log
+            Logger.log("[Modal.setup] Starting setup..."); // Add start log
             if (!DOMElements.settingsModal) {
-                 console.error("Settings modal element not found!");
+                 Logger.error("Settings modal element not found!");
                  return;
             }
             DOMElements.closeModalBtn?.addEventListener('click', Modal.close);
@@ -1763,7 +1765,7 @@ const App = (() => {
                     }
                 });
             } else {
-                 console.warn("Weather enabled or warning checkbox not found.");
+                 Logger.warn("Weather enabled or warning checkbox not found.");
             }
 
             if (DOMElements.warningEnabledCheckbox) {
@@ -1779,7 +1781,7 @@ const App = (() => {
                      }
                 });
             } else {
-                 console.warn("Weather warning checkbox not found.");
+                 Logger.warn("Weather warning checkbox not found.");
             }
 
             // YouTube Resume Checkbox Listener
@@ -1793,7 +1795,19 @@ const App = (() => {
                     }
                 });
             } else {
-                 console.warn("YouTube resume checkbox not found.");
+                 Logger.warn("YouTube resume checkbox not found.");
+            }
+
+            // Debug Mode Checkbox Listener
+            if (DOMElements.debugModeCheckbox) {
+                DOMElements.debugModeCheckbox.addEventListener('change', (e) => {
+                    state.debugMode = e.target.checked;
+                    Logger.debugMode = state.debugMode;
+                    localStorage.setItem('debugMode', state.debugMode);
+                });
+            } else {
+                 Logger.warn('Debug mode checkbox not found.');
+            }
             }
 
             // Close modal on background click
@@ -1807,7 +1821,7 @@ const App = (() => {
                         UrlHistory.toggleList(type);
                     });
                 } else {
-                     console.warn("[Modal.setup] History button found without data-history-for attribute.", btn);
+                     Logger.warn("[Modal.setup] History button found without data-history-for attribute.", btn);
                 }
             });
 
@@ -1831,7 +1845,7 @@ const App = (() => {
                      // Prevent browser autocomplete 
                      inputElement.setAttribute('autocomplete', 'off');
                  } else {
-                     console.warn(`[Modal.setup] Input element not found for history: #${inputId}`);
+                     Logger.warn(`[Modal.setup] Input element not found for history: #${inputId}`);
                  }
             }
 
@@ -1849,15 +1863,15 @@ const App = (() => {
                         addItemText: null,
                         addItemFilter: false,
                     });
-                    console.log("[Modal.setup] Choices.js initialized for language select.");
+                    Logger.log("[Modal.setup] Choices.js initialized for language select.");
                 } catch (error) {
-                    console.error("[Modal.setup] Failed to initialize Choices.js for language select:", error);
+                    Logger.error("[Modal.setup] Failed to initialize Choices.js for language select:", error);
                     state.languageChoiceInstance = null; // Ensure it's null on error
                 }
 
                 DOMElements.languageSelect.addEventListener('change', Language.handleLanguageChange);
             } else {
-                 console.warn("[Modal.setup] Language select element not found.");
+                 Logger.warn("[Modal.setup] Language select element not found.");
             }
 
             if (DOMElements.fontSelect) {
@@ -1873,26 +1887,26 @@ const App = (() => {
                         removeItemButton: false,
                         addItemFilter: () => false // Explicitly disable adding items
                     });
-                    console.log("[Modal.setup] Choices.js initialized for font select.");
+                    Logger.log("[Modal.setup] Choices.js initialized for font select.");
                 } catch (error) {
-                    console.error("[Modal.setup] Failed to initialize Choices.js for font select:", error);
+                    Logger.error("[Modal.setup] Failed to initialize Choices.js for font select:", error);
                     state.fontChoiceInstance = null; // Ensure it's null on error
                 }
                 // Remove existing listener before adding
                 DOMElements.fontSelect.removeEventListener('change', FontManager.handleFontChange);
                 DOMElements.fontSelect.addEventListener('change', FontManager.handleFontChange);
             } else {
-                 console.warn("[Modal.setup] Font select element not found.");
+                 Logger.warn("[Modal.setup] Font select element not found.");
             }
                         if (DOMElements.startTimerModalBtn) {
                             DOMElements.startTimerModalBtn.addEventListener('click', FocusTimer.handleDurationSet);
                         } else {
-                             console.warn("[Modal.setup] startTimerModalBtn not found!");
+                             Logger.warn("[Modal.setup] startTimerModalBtn not found!");
                         }
                         if (DOMElements.closeDurationModalBtn) {
                             DOMElements.closeDurationModalBtn.addEventListener('click', Modal.closeDurationModal);
                         } else {
-                             console.warn("[Modal.setup] closeDurationModalBtn not found!");
+                             Logger.warn("[Modal.setup] closeDurationModalBtn not found!");
                         }
                         if (DOMElements.durationInputHours || DOMElements.durationInputMinutes || DOMElements.durationInputSeconds) {
                             [DOMElements.durationInputHours, DOMElements.durationInputMinutes, DOMElements.durationInputSeconds].forEach(input => {
@@ -1903,11 +1917,11 @@ const App = (() => {
                                            }
                                       });
                                  } else {
-                                      console.warn("[Modal.setup] One or more duration HMS input elements not found for Enter key listener!");
+                                      Logger.warn("[Modal.setup] One or more duration HMS input elements not found for Enter key listener!");
                                  }
                             });
                         } else {
-                             console.warn("[Modal.setup] durationInputHours, durationInputMinutes, or durationInputSeconds not found for Enter key listener!");
+                             Logger.warn("[Modal.setup] durationInputHours, durationInputMinutes, or durationInputSeconds not found for Enter key listener!");
                         }
                         // Close duration modal on background click
                         if (DOMElements.focusDurationModal) {
@@ -1917,9 +1931,9 @@ const App = (() => {
                                  }
                             });
                         } else {
-                             console.warn("[Modal.setup] focusDurationModal not found for background click listener!");
+                             Logger.warn("[Modal.setup] focusDurationModal not found for background click listener!");
                         }
-            console.log("[Modal.setup] Setup complete."); // Add end log
+            Logger.log("[Modal.setup] Setup complete."); // Add end log
         },
         handleAction: (action, value) => {
             let success = false; // Flag to track if action likely succeeded
@@ -1981,7 +1995,7 @@ const App = (() => {
                     // Notify.show(Language.getText('notify_add_memo')); // Add key if needed
                     break;
                 default:
-                    console.warn(`Unknown modal action: ${action}`);
+                    Logger.warn(`Unknown modal action: ${action}`);
             }
             
             if (notifyKey) {
@@ -2067,7 +2081,7 @@ const App = (() => {
         openDurationModal: () => {
             if (!DOMElements.focusDurationModal || !DOMElements.durationInputHours || !DOMElements.durationInputMinutes || !DOMElements.durationInputSeconds) return;
             if (state.isFocusTimerActive) { // Prevent opening if timer already running
-                 console.log("[Modal.openDurationModal] Timer is already active. Ignoring request.");
+                 Logger.log("[Modal.openDurationModal] Timer is already active. Ignoring request.");
                  Notify.show("計時器已在運行中", "info");
                  return;
             }
@@ -2084,7 +2098,7 @@ const App = (() => {
             const initialTotalDurationSeconds = (hours * 3600) + (minutes * 60) + seconds;
             const THREE_HOURS_IN_SECONDS = 3 * 3600;
             if (initialTotalDurationSeconds > THREE_HOURS_IN_SECONDS) {
-                 console.log("[Modal.openDurationModal] Initial duration > 3 hours. Starting dodge.");
+                 Logger.log("[Modal.openDurationModal] Initial duration > 3 hours. Starting dodge.");
                  setTimeout(() => {
                     // Animation.dodgeCursor(DOMElements.startTimerModalBtn); // REMOVED
                     // Notify.show(Language.getText('notify_duration_too_long'), 'warning', 4000); // Optional notification on open
@@ -2203,7 +2217,7 @@ const App = (() => {
              const targetTagName = e.target.tagName;
              if (targetTagName === 'INPUT' || targetTagName === 'TEXTAREA') {
                  // Allow specific inputs if needed in the future, but for now, block all
-                 console.log("[Keyboard] Input focus detected, blocking shortcut.");
+                 Logger.log("[Keyboard] Input focus detected, blocking shortcut.");
                  return; 
              }
 
@@ -2415,7 +2429,7 @@ const App = (() => {
                     Modal.open();
                     break;
                 default:
-                    console.warn(`Unknown context menu action: ${action}`);
+                    Logger.warn(`Unknown context menu action: ${action}`);
             }
         },
 
@@ -2440,7 +2454,7 @@ const App = (() => {
                     try {
                         state[type + 'History'] = JSON.parse(savedHistory);
                     } catch (e) {
-                        console.error(`[UrlHistory] Error parsing saved ${type} history:`, e);
+                        Logger.error(`[UrlHistory] Error parsing saved ${type} history:`, e);
                         state[type + 'History'] = [];
                         localStorage.removeItem(key); // Remove corrupted data
                     }
@@ -2473,7 +2487,7 @@ const App = (() => {
             try {
                 localStorage.setItem(UrlHistory.HISTORY_KEYS[type], JSON.stringify(historyArray));
             } catch (e) {
-                console.error(`[UrlHistory] Error saving ${type} history:`, e);
+                Logger.error(`[UrlHistory] Error saving ${type} history:`, e);
             }
         },
 
@@ -2483,7 +2497,7 @@ const App = (() => {
             const historyToDisplay = filteredHistory !== undefined ? filteredHistory : (state[type + 'History'] || []);
 
             if (!listElement) {
-                console.error(`[UrlHistory] List element not found: #${listId}`);
+                Logger.error(`[UrlHistory] List element not found: #${listId}`);
                 return;
             }
 
@@ -2519,7 +2533,7 @@ const App = (() => {
                         inputElement.focus(); // Keep focus or refocus
                         UrlHistory.hideActiveList(); // Hide list after selection
                     } else {
-                        console.error(`[UrlHistory] Could not find input #${inputId} or URL missing for selection.`);
+                        Logger.error(`[UrlHistory] Could not find input #${inputId} or URL missing for selection.`);
                     }
                 });
                 listElement.appendChild(li);
@@ -2625,7 +2639,7 @@ const App = (() => {
             if (FontManager.FONT_CLASSES.includes(newClass)) {
                 body.classList.add(newClass);
             } else {
-                console.warn(`[FontManager] Attempted to apply invalid font class: ${newClass}. Applying default.`);
+                Logger.warn(`[FontManager] Attempted to apply invalid font class: ${newClass}. Applying default.`);
                 body.classList.add(`font-${FontManager.DEFAULT_FONT_SET}`);
                 state.currentFontSet = FontManager.DEFAULT_FONT_SET; // Reset state if invalid was attempted
             }
@@ -2636,14 +2650,14 @@ const App = (() => {
                 try {
                     state.fontChoiceInstance.destroy();
                 } catch (e) {
-                    console.error("[FontManager] Error destroying font Choices instance:", e);
+                    Logger.error("[FontManager] Error destroying font Choices instance:", e);
                 }
                 state.fontChoiceInstance = null;
             }
 
             const selectElement = DOMElements.fontSelect;
             if (!selectElement) {
-                console.error("[FontManager] Font select element not found for reinitialization.");
+                Logger.error("[FontManager] Font select element not found for reinitialization.");
                 return;
             }
 
@@ -2661,7 +2675,7 @@ const App = (() => {
                     addItemFilter: () => false
                 });
             } catch (error) {
-                console.error("[FontManager] Failed to reinitialize Choices.js for font select:", error);
+                Logger.error("[FontManager] Failed to reinitialize Choices.js for font select:", error);
                 state.fontChoiceInstance = null;
             }
         },
@@ -2679,11 +2693,11 @@ const App = (() => {
                     if (state.fontChoiceInstance) {
                          try {
                               state.fontChoiceInstance.setValue([newFontSet]); // Restore this line
-                         } catch (e) { console.error("Error updating font Choices instance value:", e); }
+                         } catch (e) { Logger.error("Error updating font Choices instance value:", e); }
                     }
                     */
                 } else {
-                     console.warn(`[FontManager] Invalid font set value selected: ${newFontSet}`);
+                     Logger.warn(`[FontManager] Invalid font set value selected: ${newFontSet}`);
                      // Reset dropdown by reinitializing with current state
                      FontManager.reinitializeChoices(); 
                 }
@@ -2713,7 +2727,7 @@ const App = (() => {
             if (state.clockUpdateInterval) {
                 clearInterval(state.clockUpdateInterval);
                 state.clockUpdateInterval = null; // Clear state variable too
-                console.log('[FocusTimer.start] Cleared Clock interval.');
+                Logger.log('[FocusTimer.start] Cleared Clock interval.');
             }
             
             // Show the cancel button - REMOVED
@@ -2731,14 +2745,14 @@ const App = (() => {
             FocusTimer.updateDisplay(); // Initial display update
             if (state.focusTimerInterval) clearInterval(state.focusTimerInterval);
             state.focusTimerInterval = setInterval(FocusTimer.updateDisplay, 1000);
-            console.log('[FocusTimer.start] Started focus timer interval.');
+            Logger.log('[FocusTimer.start] Started focus timer interval.');
         },
 
         stopTimer: () => { // Removed showClock parameter, always restart clock
-            console.log('[FocusTimer.stop] === Stop Timer Called === Current focus interval:', state.focusTimerInterval); // ADDED LOG
+            Logger.log('[FocusTimer.stop] === Stop Timer Called === Current focus interval:', state.focusTimerInterval); // ADDED LOG
             if (state.focusTimerInterval) {
                 clearInterval(state.focusTimerInterval);
-                console.log('[FocusTimer.stop] Focus Interval cleared.');
+                Logger.log('[FocusTimer.stop] Focus Interval cleared.');
                 state.focusTimerInterval = null;
             }
             state.isFocusTimerActive = false;
@@ -2748,7 +2762,7 @@ const App = (() => {
 
             // Restart the regular clock updates
             Clock.start(); // Clock.start handles clearing/setting its own interval
-            console.log('[FocusTimer.stop] Restarted Clock.');
+            Logger.log('[FocusTimer.stop] Restarted Clock.');
             
             // Reset button appearance & title
             if (DOMElements.focusTimerBtn) {
@@ -2757,7 +2771,7 @@ const App = (() => {
                  DOMElements.focusTimerBtn.querySelector('.icon').textContent = '⏱️';
             }
             document.title = Language.getText('page_title');
-            console.log('[FocusTimer.stop] === Stop Timer Finished ==='); // ADDED LOG
+            Logger.log('[FocusTimer.stop] === Stop Timer Finished ==='); // ADDED LOG
         },
 
         updateDisplay: () => {
@@ -2770,7 +2784,7 @@ const App = (() => {
             const remainingSeconds = Math.round((endTime - now) / 1000);
             
             if (remainingSeconds <= 0) {
-                 console.log(`[FocusTimer.update] Remaining seconds <= 0 (${remainingSeconds}). Calling completeTimer.`);
+                 Logger.log(`[FocusTimer.update] Remaining seconds <= 0 (${remainingSeconds}). Calling completeTimer.`);
                  FocusTimer.completeTimer();
                  return; // Timer completed, exit function
             }
@@ -2781,14 +2795,14 @@ const App = (() => {
             if (DOMElements.clock) {
                 DOMElements.clock.textContent = timeString;
             } else {
-                console.warn('[FocusTimer.update] clock element not found!');
+                Logger.warn('[FocusTimer.update] clock element not found!');
             }
 
             document.title = `${timeString} - ${Language.getText('page_title')}`;
         }, // End of updateDisplay function
 
         completeTimer: () => {
-            console.log('[FocusTimer.complete] === Complete Timer Called ==='); // ADDED LOG
+            Logger.log('[FocusTimer.complete] === Complete Timer Called ==='); // ADDED LOG
             FocusTimer.stopTimer(); // Stop timer and restart clock
             Modal.openCompleteModal();
             // Optional: Play sound
@@ -2798,7 +2812,7 @@ const App = (() => {
             // Main Timer Button - REMOVED
             /*
             if (DOMElements.focusTimerBtn) {
-                console.log('[FocusTimer.setup] Adding listener to focusTimerBtn');
+                Logger.log('[FocusTimer.setup] Adding listener to focusTimerBtn');
                 DOMElements.focusTimerBtn.addEventListener('click', FocusTimer.toggleTimer); // Now promptAndStart
             }
             */
@@ -2807,14 +2821,14 @@ const App = (() => {
             /*
             const cancelBtn = DOMElements.cancelTimerBtn;
             if (cancelBtn) {
-                console.log('[FocusTimer.setup] Adding listener to cancelTimerBtn');
+                Logger.log('[FocusTimer.setup] Adding listener to cancelTimerBtn');
                 cancelBtn.addEventListener('click', () => {
-                    console.log('[FocusTimer.setup] cancelTimerBtn clicked!');
+                    Logger.log('[FocusTimer.setup] cancelTimerBtn clicked!');
                     FocusTimer.stopTimer();
                 });
                 cancelBtn.innerHTML = Language.getText('focus_timer_cancel_button') || '⏹️ Cancel';
             } else {
-                console.warn('[FocusTimer.setup] cancelTimerBtn element NOT found!');
+                Logger.warn('[FocusTimer.setup] cancelTimerBtn element NOT found!');
             }
             */
             
@@ -2825,41 +2839,41 @@ const App = (() => {
 
             const clockEl = DOMElements.clock; // The <p> element
             if (clockEl) {
-                console.log('[FocusTimer.setup] Adding hover listeners to clock <p>');
+                Logger.log('[FocusTimer.setup] Adding hover listeners to clock <p>');
                 clockEl.addEventListener('mouseenter', () => {
-                    console.log('[FocusTimer Hover] Mouse Enter Clock <p>');
+                    Logger.log('[FocusTimer Hover] Mouse Enter Clock <p>');
                     if (state.isFocusTimerActive) { 
                         state.isHoveringClock = true;
-                        console.log('[FocusTimer Hover] Set isHoveringClock = true');
+                        Logger.log('[FocusTimer Hover] Set isHoveringClock = true');
                         FocusTimer.updateDisplay(); // Immediately update display
                     }
                 });
                 clockEl.addEventListener('mouseleave', () => {
-                    console.log('[FocusTimer Hover] Mouse Leave Clock <p>');
+                    Logger.log('[FocusTimer Hover] Mouse Leave Clock <p>');
                     state.isHoveringClock = false;
-                    console.log('[FocusTimer Hover] Set isHoveringClock = false');
+                    Logger.log('[FocusTimer Hover] Set isHoveringClock = false');
                     if (state.isFocusTimerActive) { 
                         FocusTimer.updateDisplay(); // Immediately update display
                     }
                 });
             } else {
-                 console.warn('[FocusTimer.setup] Could not find clock element for hover listeners.');
+                 Logger.warn('[FocusTimer.setup] Could not find clock element for hover listeners.');
             }
             
-            console.log('[FocusTimer.setup] Setting up Completion Modal buttons...'); // ADDED LOG
+            Logger.log('[FocusTimer.setup] Setting up Completion Modal buttons...'); // ADDED LOG
             if (DOMElements.closeCompleteModalBtn) {
-                console.log('[FocusTimer.setup] Found closeCompleteModalBtn, adding listener.'); // ADDED LOG
+                Logger.log('[FocusTimer.setup] Found closeCompleteModalBtn, adding listener.'); // ADDED LOG
                 DOMElements.closeCompleteModalBtn.addEventListener('click', Modal.closeCompleteModal);
             } else {
-                 console.warn('[FocusTimer.setup] closeCompleteModalBtn not found!'); // ADDED LOG
+                 Logger.warn('[FocusTimer.setup] closeCompleteModalBtn not found!'); // ADDED LOG
             }
             if (DOMElements.completeModalButtons && DOMElements.completeModalButtons.length > 0) {
-                console.log(`[FocusTimer.setup] Found ${DOMElements.completeModalButtons.length} completeModalButtons, adding listeners...`); // ADDED LOG
+                Logger.log(`[FocusTimer.setup] Found ${DOMElements.completeModalButtons.length} completeModalButtons, adding listeners...`); // ADDED LOG
                 DOMElements.completeModalButtons.forEach(btn => {
                     const action = btn.dataset.action;
-                    console.log(`[FocusTimer.setup] Adding listener for action: ${action} to button:`, btn); // ADDED LOG
+                    Logger.log(`[FocusTimer.setup] Adding listener for action: ${action} to button:`, btn); // ADDED LOG
                     btn.addEventListener('click', () => {
-                         console.log(`[FocusTimer.setup] Completion modal button clicked: ${action}`); // ADDED LOG
+                         Logger.log(`[FocusTimer.setup] Completion modal button clicked: ${action}`); // ADDED LOG
                         if (action === 'restart-timer') {
                             Modal.closeCompleteModal();
                             // Get duration again (maybe prompt or use last value?)
@@ -2871,7 +2885,7 @@ const App = (() => {
                     });
                 });
             } else {
-                 console.warn('[FocusTimer.setup] completeModalButtons collection not found or empty!'); // ADDED LOG
+                 Logger.warn('[FocusTimer.setup] completeModalButtons collection not found or empty!'); // ADDED LOG
             }
 
         },
@@ -2879,7 +2893,7 @@ const App = (() => {
         toggleTimer: () => {
             if (state.isFocusTimerActive) {
                 // Timer is running, clicking main button should do nothing.
-                console.log('[FocusTimer.toggleTimer] Timer is already active. Click ignored. Use Cancel button to stop.');
+                Logger.log('[FocusTimer.toggleTimer] Timer is already active. Click ignored. Use Cancel button to stop.');
                 // FocusTimer.stopTimer(); // REMOVED THIS LINE
                 return; // Stop further execution in this function
             } else {
@@ -2895,7 +2909,7 @@ const App = (() => {
 
                 if (isNaN(durationMinutes) || durationMinutes < 1 || durationMinutes > 120) {
                     Notify.show(Language.getText('notify_invalid_duration_prompt') || 'Invalid input. Please enter a number between 1 and 120.', 'error');
-                    console.warn(`[FocusTimer] Invalid duration input: ${userInput}`);
+                    Logger.warn(`[FocusTimer] Invalid duration input: ${userInput}`);
                 } else {
                     const durationSeconds = durationMinutes * 60;
                     state.focusTimerDuration = durationSeconds; // Update state (already in seconds)
@@ -2912,7 +2926,7 @@ const App = (() => {
             const secondsInput = DOMElements.durationInputSeconds;
 
             if (!hoursInput || !minutesInput || !secondsInput) {
-                console.error("[FocusTimer.handleDurationSet] Duration input elements not found!");
+                Logger.error("[FocusTimer.handleDurationSet] Duration input elements not found!");
                 return;
             }
 
@@ -2929,7 +2943,7 @@ const App = (() => {
                 (hours === 0 && minutes === 0 && seconds === 0) // Total duration must be > 0
             ) {
                 Notify.show(Language.getText('notify_invalid_hms_input') || 'Invalid HMS input', 'error');
-                console.warn(`[FocusTimer] Invalid duration input from modal: H=${hoursInput.value}, M=${minutesInput.value}, S=${secondsInput.value}`);
+                Logger.warn(`[FocusTimer] Invalid duration input from modal: H=${hoursInput.value}, M=${minutesInput.value}, S=${secondsInput.value}`);
                 // Focus the first invalid field?
                 if (isNaN(parseInt(hoursInput.value, 10)) || parseInt(hoursInput.value, 10) < 0) hoursInput.focus();
                 else if (isNaN(parseInt(minutesInput.value, 10)) || parseInt(minutesInput.value, 10) < 0 || parseInt(minutesInput.value, 10) > 59) minutesInput.focus();
@@ -2994,7 +3008,7 @@ const App = (() => {
             const modalContent = DOMElements.focusDurationModal?.querySelector('.modal-content');
             if (!modalContent) return;
 
-            console.log("[Animation] Starting continuous dodgeCursor");
+            Logger.log("[Animation] Starting continuous dodgeCursor");
             Animation.isDodging = true;
             Animation.originalTransform = buttonElement.style.transform || ''; // Store original
             buttonElement.style.transition = 'transform 0.1s linear'; // Optional: Use CSS transition for smoother immediate movement?
@@ -3067,7 +3081,7 @@ const App = (() => {
             if (!buttonElement || !Animation.isDodging) return;
              const modalContent = DOMElements.focusDurationModal?.querySelector('.modal-content');
             
-            console.log("[Animation] Stopping continuous dodgeCursor");
+            Logger.log("[Animation] Stopping continuous dodgeCursor");
             Animation.isDodging = false;
             buttonElement.style.transition = ''; // Remove temporary CSS transition
 
@@ -3098,11 +3112,11 @@ const App = (() => {
         // Corrected Validation:
         const MAX_DURATION_SECONDS = (99 * 3600) + (59 * 60) + 59; // 99:59:59
         if (isNaN(state.focusTimerDuration) || state.focusTimerDuration < 1 || state.focusTimerDuration > MAX_DURATION_SECONDS) {
-            console.warn(`[App.init] Invalid saved duration (${savedDuration}). Resetting to default.`); // Added warning
+            Logger.warn(`[App.init] Invalid saved duration (${savedDuration}). Resetting to default.`); // Added warning
             state.focusTimerDuration = FocusTimer.DEFAULT_DURATION_MINUTES * 60;
             localStorage.removeItem('focusTimerDuration'); // Clear invalid item
         }
-        console.log(`[App.init] Loaded Focus Timer Duration: ${state.focusTimerDuration} seconds (${state.focusTimerDuration / 60} minutes)`); // Log seconds too
+        Logger.log(`[App.init] Loaded Focus Timer Duration: ${state.focusTimerDuration} seconds (${state.focusTimerDuration / 60} minutes)`); // Log seconds too
         // No need to set input field value anymore
         // if (DOMElements.focusDurationInput) { ... }
 
@@ -3110,13 +3124,13 @@ const App = (() => {
             const savedPositions = localStorage.getItem('widgetPositions');
             if (savedPositions) {
                 state.widgetPositions = JSON.parse(savedPositions);
-                console.log("[App.init] Loaded initial widget positions:", state.widgetPositions);
+                Logger.log("[App.init] Loaded initial widget positions:", state.widgetPositions);
             } else {
                 state.widgetPositions = {}; // Initialize as empty object if none saved
-                console.log("[App.init] No saved widget positions found, initialized empty state.");
+                Logger.log("[App.init] No saved widget positions found, initialized empty state.");
             }
         } catch (e) {
-             console.error("[App.init] Error loading or parsing widget positions:", e);
+             Logger.error("[App.init] Error loading or parsing widget positions:", e);
              state.widgetPositions = {}; // Reset on error
              localStorage.removeItem('widgetPositions'); // Clear potentially corrupted data
         }
@@ -3126,20 +3140,24 @@ const App = (() => {
         // ... (Load other settings, URL History, Media Pref, etc.) ...
         UrlHistory.loadAll();
         Background.loadPreference();
+        const savedDebug = localStorage.getItem('debugMode');
+        state.debugMode = savedDebug === 'true';
+        Logger.debugMode = state.debugMode;
+        Logger.log(`[App.init] Debug mode: ${Logger.debugMode}`);
         const savedWeatherEnabled = localStorage.getItem('weatherEnabled');
         state.weatherEnabled = savedWeatherEnabled !== 'false'; // Default to true if not found or invalid
         const savedWarningEnabled = localStorage.getItem('weatherWarningEnabled');
         // Only enable warnings if weather is also enabled
         state.weatherWarningEnabled = state.weatherEnabled && (savedWarningEnabled !== 'false'); 
-        console.log(`[App.init] Loaded Weather Enabled: ${state.weatherEnabled}, Warning Enabled: ${state.weatherWarningEnabled}`);
+        Logger.log(`[App.init] Loaded Weather Enabled: ${state.weatherEnabled}, Warning Enabled: ${state.weatherWarningEnabled}`);
 
         window.addEventListener('beforeunload', Background.saveYouTubeTime);
         // ... (API injection, element checks, Choices init) ...
         try {
             await Weather.initializeLocationSelect(); // Initialize with potentially translated placeholder
-            console.log("[App.init] Location select initialized.");
+            Logger.log("[App.init] Location select initialized.");
         } catch (error) { 
-             console.error("[App.init] Failed to initialize location select:", error);
+             Logger.error("[App.init] Failed to initialize location select:", error);
         } 
 
         // Translate UI based on loaded language AFTER essential DOM is ready
@@ -3152,11 +3170,14 @@ const App = (() => {
             DOMElements.warningEnabledCheckbox.checked = state.weatherWarningEnabled;
             DOMElements.warningEnabledCheckbox.disabled = !state.weatherEnabled;
         }
+        if (DOMElements.debugModeCheckbox) {
+            DOMElements.debugModeCheckbox.checked = state.debugMode;
+        }
  
         // Start Modules
         Clock.start();
         await Weather.start(); // Weather.start already checks state.weatherEnabled
-        console.log("[App.init] Calling Modal.setup()..."); // Add log before call
+        Logger.log("[App.init] Calling Modal.setup()..."); // Add log before call
         Modal.setup(); // Includes language selector setup now
         FocusTimer.setup(); // Setup focus timer listeners
         DragDrop.setup();
@@ -3167,12 +3188,12 @@ const App = (() => {
         MemoManager.setup();
         ContextMenu.setup(); 
         initialAnimation();
-        console.log("Focus Timer Initialized with Language Support");
+        Logger.log("Focus Timer Initialized with Language Support");
     };
     
     // Method to be called by the global onYouTubeIframeAPIReady
     const handleYouTubeApiReady = () => {
-        console.log("[App.handleYouTubeApiReady] YouTube API is ready.");
+        Logger.log("[App.handleYouTubeApiReady] YouTube API is ready.");
         Background.createYouTubePlayer(); // Create player with pending ID and time
     };
 
@@ -3185,7 +3206,7 @@ const App = (() => {
 
 // This function MUST be in the global scope
 function onYouTubeIframeAPIReady() {
-    console.log("Global: onYouTubeIframeAPIReady triggered.");
+    Logger.log("Global: onYouTubeIframeAPIReady triggered.");
     // Call the method inside our App module
     App.handleYouTubeApiReady(); 
 }
