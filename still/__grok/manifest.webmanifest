@@ -1,0 +1,8 @@
+{
+  "name": "Still",
+  "short_name": "Still",
+  "start_url": "/chillwork/still/",
+  "display": "standalone",
+  "background_color": "#F4EFE4",
+  "theme_color": "#2C4A42"
+}
